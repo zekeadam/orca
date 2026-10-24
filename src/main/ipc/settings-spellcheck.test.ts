@@ -42,11 +42,14 @@ describe('spellcheck settings IPC', () => {
     expect(update.spellcheckLanguages).toEqual(['en-GB', 'hu'])
   })
 
-  it.each([[], ['zz-ZZ'], ['invalid_tag']])('rejects an unusable selection %j', (languages) => {
-    expect(() => sanitizeSpellcheckUpdate({ spellcheckLanguages: languages }, session())).toThrow(
-      'supported spellcheck language'
-    )
-  })
+  it.each([{ languages: [] }, { languages: ['zz-ZZ'] }, { languages: ['invalid_tag'] }])(
+    'rejects an unusable selection $languages',
+    ({ languages }) => {
+      expect(() => sanitizeSpellcheckUpdate({ spellcheckLanguages: languages }, session())).toThrow(
+        'supported spellcheck language'
+      )
+    }
+  )
 
   it('applies changes to each live local session once, including the originating window', () => {
     const onSettingsChanged = vi.fn<Store['onSettingsChanged']>(() => () => {})
