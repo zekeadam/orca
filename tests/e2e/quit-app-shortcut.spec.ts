@@ -20,6 +20,8 @@ test('Settings records a quit shortcut, persists it and exits through the app li
   const privateSettingsPath = orcaPage
     .locator('p')
     .filter({ hasText: 'Customize shortcuts visually or edit' })
+    .locator('..')
+  await orcaPage.evaluate(() => document.fonts.ready)
   await orcaPage.screenshot({
     path: testInfo.outputPath('quit-before.png'),
     mask: [privateSettingsPath]
