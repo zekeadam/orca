@@ -73,6 +73,7 @@ test('adds Hungarian alongside English and restores both after relaunch', async 
       )
     ).toBe(false)
     await first.page.keyboard.press('Escape')
+    await expect(first.page.getByRole('option', { name: /Hungarian|magyar/ })).toBeHidden()
     const cdp = await first.page.context().newCDPSession(first.page)
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' })
     await cdp.detach()
