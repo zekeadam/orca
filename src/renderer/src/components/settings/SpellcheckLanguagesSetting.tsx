@@ -113,7 +113,7 @@ export function SpellcheckLanguagesSetting({ settings }: Props): React.JSX.Eleme
                 <ChevronDown className="size-3.5" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-80 p-0">
+            <PopoverContent align="start" className="w-80">
               <Command>
                 <CommandInput
                   placeholder={translate(
