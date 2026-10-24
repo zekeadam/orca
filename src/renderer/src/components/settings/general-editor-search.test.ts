@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { getGeneralEditorSearchEntries, getGeneralPaneSearchEntries } from './general-search'
 import { matchesSettingsSearch } from './settings-search'
 
+it.each(['spellcheck', 'languages', 'Hungarian', 'magyar', 'English', 'dictionary'])(
+  'finds Spellcheck Languages through both search gates for %s',
+  (query) => {
+    const entries = getGeneralEditorSearchEntries()
+    const entry = entries.find((item) => item.title === 'Spellcheck Languages')
+    expect(entry).toBeDefined()
+    expect(matchesSettingsSearch(query, entry!)).toBe(true)
+    expect(matchesSettingsSearch(query, getGeneralPaneSearchEntries())).toBe(true)
+  }
+)
+
 describe('collapse unchanged settings search', () => {
   it.each(['collapse unchanged', 'collapse', 'hide unchanged', 'fold', 'diff'])(
     'keeps the setting reachable through both search gates for "%s"',
