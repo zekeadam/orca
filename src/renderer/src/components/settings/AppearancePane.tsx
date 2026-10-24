@@ -1,3 +1,5 @@
+import { AppearanceColorSettings } from './AppearanceColorSettings'
+import { getAppearanceColorEntries } from './appearance-color-search'
 import type React from 'react'
 import { useLayoutEffect, useState } from 'react'
 import { AppWindow, PanelLeft, TerminalSquare } from 'lucide-react'
@@ -138,6 +140,7 @@ export function AppearancePane({
   const interfaceSearchEntries = [
     { title: interfaceTitle },
     ...getThemeEntries(),
+    ...getAppearanceColorEntries(),
     ...getZoomEntries(),
     ...getTypographyEntries(),
     ...(SHOW_UI_LANGUAGE_SETTING ? getLanguageEntries() : []),
@@ -227,6 +230,11 @@ export function AppearancePane({
             isDesktopMac={isDesktopMac}
             isDesktopWindows={isDesktopWindows}
             forceVisiblePrimary={interfaceLabelMatches}
+          />
+          <AppearanceColorSettings
+            settings={settings}
+            updateSettings={updateSettings}
+            forceVisible={interfaceLabelMatches}
           />
         </AppearanceSection>
       ) : null}

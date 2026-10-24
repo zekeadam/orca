@@ -319,6 +319,28 @@
         "sharper": "Sharper",
         "terminalControlledHint": "Set by terminal interface.",
         "terminalControlledTooltip": "Matching your terminal interface. Turn off Match terminal interface to change this."
+      },
+      "colors": {
+        "tabBarBackground": "Tab bar background",
+        "tabBackground": "Tab background",
+        "activeTabBackground": "Active tab background",
+        "statusBarBackground": "Status bar background",
+        "accentColor": "Accent color",
+        "reset": "Reset",
+        "invalid": "Enter a 3 or 6 digit hex color.",
+        "title": "Colors",
+        "resetAll": "Reset colors",
+        "keywordColors": "colors",
+        "keywordAppearance": "appearance",
+        "keywordHex": "hex",
+        "keywordCustom": "custom",
+        "keywordReset": "reset",
+        "keywordTitlebar": "titlebar",
+        "keywordFocus": "focus",
+        "keywordLinks": "links",
+        "pickerLabel": "{{label}} picker",
+        "default": "Default",
+        "resetLabel": "Reset {{label}}"
       }
     },
     "browser": {

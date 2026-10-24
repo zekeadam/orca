@@ -18,7 +18,7 @@
 .native-chat-markdown a {
   word-break: normal;
   overflow-wrap: anywhere;
-  color: var(--chat-foreground-strong);
+  color: var(--chat-link, var(--chat-foreground-strong));
   text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
 }
 

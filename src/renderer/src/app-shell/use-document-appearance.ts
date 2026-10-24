@@ -1,3 +1,5 @@
+import { applyAppearanceColors } from '../lib/appearance-colors'
+import { useShallow } from 'zustand/react/shallow'
 import { useEffect } from 'react'
 import { buildAppFontFamily } from '@/lib/app-font-family'
 import { applyDocumentTheme } from '../lib/document-theme'
@@ -6,6 +8,22 @@ import { useAppStore } from '../store'
 
 /** Applies the settings-driven theme and app font to the document root. */
 export function useDocumentAppearance(): void {
+  const colors = useAppStore(
+    useShallow((s) => ({
+      tabBarBackground: s.settings?.tabBarBackground,
+      tabBackground: s.settings?.tabBackground,
+      activeTabBackground: s.settings?.activeTabBackground,
+      statusBarBackground: s.settings?.statusBarBackground,
+      accentColor: s.settings?.accentColor
+    }))
+  )
+  useEffect(() => {
+    const apply = (): void => applyAppearanceColors(colors)
+    apply()
+    const observer = new MutationObserver(apply)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [colors])
   const theme = useAppStore((s) => s.settings?.theme)
   const appFontFamily = useAppStore((s) => s.settings?.appFontFamily)
 

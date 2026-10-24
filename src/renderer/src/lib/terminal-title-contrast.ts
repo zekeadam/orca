@@ -202,3 +202,25 @@ function contrastRatio(
 function clampNumber(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
+
+export function cssColorContrast(foreground: string, background: string): number {
+  const fg = parseCssRgbColor(foreground)
+  const bg = parseCssRgbColor(background)
+  return fg && bg ? contrastRatio(fg, bg) : 1
+}
+
+export function contrastingColor(color: string, background: string, minimum = 4.5): string {
+  const source = parseCssRgbColor(color)
+  if (!source || cssColorContrast(color, background) >= minimum) {
+    return color
+  }
+  const target = isTerminalBackgroundLight(background) ? 0 : 255
+  for (let step = 1; step <= 100; step++) {
+    const channel = (value: number): number => Math.round(value + ((target - value) * step) / 100)
+    const result = `rgb(${channel(source.r)} ${channel(source.g)} ${channel(source.b)})`
+    if (cssColorContrast(result, background) >= minimum) {
+      return result
+    }
+  }
+  return target === 0 ? '#000000' : '#ffffff'
+}
