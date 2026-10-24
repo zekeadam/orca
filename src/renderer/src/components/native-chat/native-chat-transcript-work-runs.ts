@@ -19,7 +19,10 @@ import type {
   NativeChatTranscriptSlot
 } from './native-chat-transcript-slots'
 
-function workRunRow(slot: NativeChatTranscriptSlot): NativeChatWorkRunRow {
+function workRunRow(
+  slot: NativeChatTranscriptSlot,
+  collapseTechnicalActivity: boolean
+): NativeChatWorkRunRow {
   // Every slot draws something: its message, or its turn's bar or rollup.
   if (slot.kind !== 'message') {
     return { member: null, draws: true, scope: undefined }
@@ -31,7 +34,8 @@ function workRunRow(slot: NativeChatTranscriptSlot): NativeChatWorkRunRow {
             slot.message,
             slot.receipt !== undefined,
             // At the top level the live line owns the open thought; only a section has none.
-            slot.depth > 0 && slot.activeTurnIsWorking
+            slot.depth > 0 && slot.activeTurnIsWorking,
+            collapseTechnicalActivity
           )
         : null,
     draws: true,
@@ -70,12 +74,13 @@ function workRunSlot(
 
 export function nativeChatTranscriptWorkRuns(
   slots: readonly NativeChatTranscriptSlot[],
-  typography?: NativeChatRowTypography
+  typography?: NativeChatRowTypography,
+  collapseTechnicalActivity = false
 ): NativeChatTranscriptSlot[] {
-  const rows = slots.map(workRunRow)
+  const rows = slots.map((slot) => workRunRow(slot, collapseTechnicalActivity))
   const runAt = new Map<number, NativeChatMessageSlot[]>()
   const joined = new Set<number>()
-  for (const span of nativeChatWorkRunSpans(rows)) {
+  for (const span of nativeChatWorkRunSpans(rows, collapseTechnicalActivity)) {
     runAt.set(
       span[0]!,
       span.flatMap((index) => {

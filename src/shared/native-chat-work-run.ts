@@ -3,6 +3,7 @@
 // before every call still shows one "Ran 5 commands" row, not ten alternating rows.
 
 import { isNativeChatAskCall } from './native-chat-ask-row'
+import { isNativeChatAutoApprovalMessage } from './native-chat-auto-approval'
 import { deriveNativeChatRowContent } from './native-chat-row-content'
 import { isStoppedBeforeStartBlock } from './native-chat-stopped-before-start'
 import { pairToolBlocks } from './native-chat-tool-fold'
@@ -10,7 +11,7 @@ import type { NativeChatBlock, NativeChatMessage } from './native-chat-types'
 
 /** `lead`: the agent's words with calls already folded under them, which may head a run but
  *  never join one. */
-export type NativeChatWorkRunMember = 'lead' | 'tool' | 'thought'
+export type NativeChatWorkRunMember = 'lead' | 'tool' | 'thought' | 'approval'
 
 /** What a drawn row contributes to a work run, or null when it ends one. Rows that carry
  *  anything besides words and plain tool activity (a roster, a background task, a question,
@@ -19,24 +20,61 @@ export type NativeChatWorkRunMember = 'lead' | 'tool' | 'thought'
 export function nativeChatWorkRunMember(
   message: NativeChatMessage,
   hasReceipt: boolean,
-  scopeIsWorking: boolean
+  scopeIsWorking: boolean,
+  includeAutoApprovals = false
 ): NativeChatWorkRunMember | null {
   if (hasReceipt) {
     return null
   }
+  if (includeAutoApprovals && isNativeChatAutoApprovalMessage(message)) {
+    return 'approval'
+  }
   if (message.role === 'reasoning') {
     // A thought still being thought stays in view on its own row; it joins once it ends. Any
     // other drawn thought joins, and one with no visible text draws nothing inside the run.
-    return scopeIsWorking && message.state === 'running' ? null : 'thought'
+    return (scopeIsWorking && message.state === 'running') ||
+      message.blocks.some(
+        (block) =>
+          block.type !== 'text' ||
+          block.tone !== undefined ||
+          block.providerFrame !== undefined ||
+          block.presentation !== undefined ||
+          block.failure !== undefined ||
+          block.contextClear !== undefined ||
+          block.orcaStop !== undefined
+      )
+      ? null
+      : 'thought'
   }
   const content = deriveNativeChatRowContent(message.blocks)
+  const firstTool = message.blocks.findIndex(
+    (block) => block.type === 'tool-call' || block.type === 'tool-result'
+  )
+  const lastProse = message.blocks.findLastIndex(
+    (block) => block.type === 'image-ref' || (block.type === 'text' && block.text.trim().length > 0)
+  )
   if (
     message.role !== 'assistant' ||
     content.tools.length === 0 ||
+    lastProse > firstTool ||
     content.subagentGroups.length > 0 ||
     content.backgroundTasks.length > 0 ||
+    (includeAutoApprovals &&
+      content.tools.some(
+        (block) =>
+          (block.type === 'tool-call' && block.state === 'failed') ||
+          (block.type === 'tool-result' && block.isError === true)
+      )) ||
     message.blocks.some(
-      (block) => isStoppedBeforeStartBlock(block) || (block.type === 'text' && block.providerFrame)
+      (block) =>
+        isStoppedBeforeStartBlock(block) ||
+        (block.type === 'text' &&
+          (block.providerFrame ||
+            block.tone ||
+            block.presentation ||
+            block.failure ||
+            block.contextClear ||
+            block.orcaStop))
     ) ||
     content.tools.some(isNativeChatAskCall)
   ) {
@@ -57,13 +95,16 @@ export type NativeChatWorkRunRow = {
 
 /** Each work run's member indexes, ascending. A run has at least two members and at least one
  *  call; a lead may head one but never join one. Derived per call, so nothing is stored. */
-export function nativeChatWorkRunSpans(rows: readonly NativeChatWorkRunRow[]): number[][] {
+export function nativeChatWorkRunSpans(
+  rows: readonly NativeChatWorkRunRow[],
+  includeTechnicalAsides = false
+): number[][] {
   const spans: number[][] = []
   let open: number[] = []
   let hasCall = false
   let scope: string | undefined
   const close = (): void => {
-    if (open.length > 1 && hasCall) {
+    if (includeTechnicalAsides ? open.length > 0 : open.length > 1 && hasCall) {
       spans.push(open)
     }
     open = []
@@ -86,7 +127,7 @@ export function nativeChatWorkRunSpans(rows: readonly NativeChatWorkRunRow[]): n
       scope = row.scope
     }
     open.push(index)
-    hasCall ||= row.member !== 'thought'
+    hasCall ||= row.member === 'tool' || row.member === 'lead'
   }
   close()
   return spans
@@ -102,13 +143,17 @@ export type NativeChatWorkRunEntries = {
 }
 
 export function nativeChatWorkRunEntries(
-  members: readonly NativeChatMessage[]
+  members: readonly NativeChatMessage[],
+  includeAutoApprovals = false
 ): NativeChatWorkRunEntries {
   const blocks: NativeChatBlock[] = []
   const thoughtsBefore = new Map<NativeChatBlock, NativeChatMessage[]>()
   let waiting: NativeChatMessage[] = []
   for (const message of members) {
-    if (message.role === 'reasoning') {
+    if (
+      message.role === 'reasoning' ||
+      (includeAutoApprovals && isNativeChatAutoApprovalMessage(message))
+    ) {
       waiting.push(message)
       continue
     }

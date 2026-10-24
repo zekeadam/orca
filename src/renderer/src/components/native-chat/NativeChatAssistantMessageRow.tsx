@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import type { NativeChatMessage } from '../../../../shared/native-chat-types'
-import type { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
+import { isNativeChatAutoApprovalMessage } from '../../../../shared/native-chat-auto-approval'
+import { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
 import type { MessageRowProps } from './NativeChatMessageRow'
 import { NativeChatPacedMarkdown } from './NativeChatPacedMarkdown'
 import { NATIVE_CHAT_QUOTE_SOURCE_PROPS } from './native-chat-quote-selection'
@@ -49,7 +50,10 @@ export function NativeChatAssistantMessageRow({
   const toolRun = toolRunProps(props, content, run)
   const isSystem = message.role === 'system'
   // A thought heading a run reads inside it, so the row has no words of its own.
-  const words = message.role === 'reasoning' ? '' : markdown
+  const words =
+    message.role === 'reasoning' || (run && isNativeChatAutoApprovalMessage(message))
+      ? ''
+      : markdown
   // Assistant controls reveal on hover and keyboard focus; system asides stay chrome-free.
   // A working turn's last row is only its frontier: more can still land under it.
   const showControls =
@@ -59,7 +63,7 @@ export function NativeChatAssistantMessageRow({
     <div
       ref={rowRef}
       // The context menu offers Copy message only where the hover controls offer it.
-      data-native-chat-message-id={showControls ? message.id : undefined}
+      data-native-chat-message-id={showControls ? (props.copyMessage ?? message).id : undefined}
       data-native-chat-message-tone={isSystem ? 'faint' : undefined}
       className={cn(
         'group relative max-w-full select-text text-sm leading-relaxed text-chat-foreground',
@@ -91,7 +95,11 @@ export function NativeChatAssistantMessageRow({
       {toolRun ? <NativeChatToolRun {...toolRun} /> : null}
       {showControls ? (
         <NativeChatAgentControls
-          markdown={words}
+          markdown={
+            props.copyMessage
+              ? deriveNativeChatRowContent(props.copyMessage.blocks).markdown
+              : words
+          }
           timestamp={message.timestamp}
           onScrollToTop={scrollToTop}
           className={cn(
@@ -129,7 +137,11 @@ function toolRunProps(
     subagentRoster: props.subagentRoster,
     subagentDisclosure: props.subagentDisclosure,
     backgroundTasks: content.backgroundTasks,
-    followsProse: content.markdown.length > 0 || content.hasImages,
+    followsProse:
+      (props.message.role !== 'reasoning' &&
+        !isNativeChatAutoApprovalMessage(props.message) &&
+        content.markdown.length > 0) ||
+      content.hasImages,
     expandSignal: props.expandSignal,
     activeTurnIsWorking: props.activeTurnIsWorking,
     trailing: props.trailingRun,

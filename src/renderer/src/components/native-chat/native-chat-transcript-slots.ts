@@ -17,7 +17,10 @@ import { isNativeChatRowInLiveWorkingTurn } from '../../../../shared/native-chat
 import { nativeChatMessagesWaitingBehindLiveTurn } from '../../../../shared/native-chat-messages-waiting-behind-live-turn'
 import { nativeChatTurnBarRows } from '../../../../shared/native-chat-turn-grouping'
 import { nativeChatTurnFold, nativeChatTurnFoldRow } from '../../../../shared/native-chat-turn-fold'
-import { nativeChatRowRendersContent } from '../../../../shared/native-chat-row-content'
+import {
+  deriveNativeChatRowContent,
+  nativeChatRowRendersContent
+} from '../../../../shared/native-chat-row-content'
 import {
   type NativeChatRowTypography,
   estimateNativeChatRowHeight,
@@ -87,6 +90,8 @@ export type NativeChatMessageSlot = {
 }
 
 export type NativeChatTranscriptSlotsInput = {
+  /** Desktop activity disclosure replaces whole-turn folding, keeping all prose visible. */
+  collapseTechnicalActivity?: boolean
   messages: readonly NativeChatMessage[]
   typography?: NativeChatRowTypography
   turnKeys: readonly (string | undefined)[]
@@ -126,7 +131,8 @@ export function buildNativeChatTranscriptSlots(
     lifecycleWorking,
     subagentSections: sections = NO_NATIVE_CHAT_SUBAGENT_SECTIONS,
     subagentChoices: choices = NO_NATIVE_CHAT_SUBAGENT_CHOICES,
-    liveReasoningId = null
+    liveReasoningId = null,
+    collapseTechnicalActivity = false
   } = input
   // One pass to decide what each row draws, then the fold over those readings —
   // so "is this the answer" and "does this row render prose" cannot disagree.
@@ -146,7 +152,7 @@ export function buildNativeChatTranscriptSlots(
   )
   const { foldedRows, foldableTurnKeys } = nativeChatTurnFold({
     rows: foldRows,
-    settledTurnKeys,
+    settledTurnKeys: collapseTechnicalActivity ? new Set() : settledTurnKeys,
     expandedTurnKeys
   })
   const bars = nativeChatTurnBarRows(messages, turnKeys)
@@ -196,7 +202,14 @@ export function buildNativeChatTranscriptSlots(
     )
     const drawsRow =
       receipt !== undefined ||
-      (!folded && nativeChatRowRendersContent(message.blocks) && message.id !== liveReasoningId)
+      (!folded &&
+        nativeChatRowRendersContent(message.blocks) &&
+        message.id !== liveReasoningId &&
+        !(
+          collapseTechnicalActivity &&
+          message.role === 'reasoning' &&
+          !deriveNativeChatRowContent(message.blocks).markdown.trim()
+        ))
     const roster = sectionSlots.rosterAt(message.id)
     if (drawsRow || status !== undefined || turnDiff !== undefined) {
       slots.push({
@@ -229,7 +242,7 @@ export function buildNativeChatTranscriptSlots(
     sectionSlots.openAnchoredAt(message, roster, turnKey)
   }
   sectionSlots.openBefore(pending, undefined, 0)
-  const drawn = nativeChatTranscriptWorkRuns(slots, typography)
+  const drawn = nativeChatTranscriptWorkRuns(slots, typography, collapseTechnicalActivity)
   for (let index = 0; index < drawn.length - 1; index += 1) {
     const slot = drawn[index]!
     const next = drawn[index + 1]!

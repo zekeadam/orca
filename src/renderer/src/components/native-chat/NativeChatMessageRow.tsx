@@ -21,6 +21,8 @@ import type {
 import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client-types'
 import { useNativeChatWorkRun } from './use-native-chat-work-run'
 import { useNativeChatRowNavigation } from './use-native-chat-row-navigation'
+import { nativeChatMessageSlices } from './native-chat-message-slices'
+import { nativeChatWorkRunEditKey } from '../../../../shared/native-chat-work-run'
 
 /** What a user message says about its delivery: that nothing has confirmed it yet, quietly in
  *  place of its time, or that it did not go through, with its own Retry when the surface can send
@@ -57,6 +59,8 @@ export type MessageRowProps = {
   /** This row draws a run of tool calls and thoughts: every message in it, `message` first.
    *  The same row either way, so a row becoming a run keeps everything it has mounted. */
   workRun?: readonly NativeChatMessage[]
+  /** Mixed rows copy the original message rather than just their final prose slice. */
+  copyMessage?: NativeChatMessage
 }
 
 function rowHasContent(content: ReturnType<typeof deriveNativeChatRowContent>): boolean {
@@ -97,7 +101,6 @@ export const MessageRow = memo(function MessageRow(
   const { markdown, prose } = content
   const isUser = message.role === 'user'
   const isReasoning = message.role === 'reasoning'
-  const isSystem = message.role === 'system'
   const providerFrame = blocks.find((block) => block.type === 'text' && block.providerFrame)
   const run = useNativeChatWorkRun(workRun, {
     revealedDiff: props.revealedDiff,
@@ -115,7 +118,41 @@ export const MessageRow = memo(function MessageRow(
     return null
   }
 
-  const notice = isSystem ? nativeChatNoticeBlock(blocks) : undefined
+  const slices = run === undefined ? nativeChatMessageSlices(message) : null
+  if (slices) {
+    const controlsAt = slices.findLast(
+      (slice) =>
+        !nativeChatNoticeBlock(slice.blocks) &&
+        !slice.blocks.some((block) => block.type === 'text' && block.providerFrame) &&
+        deriveNativeChatRowContent(slice.blocks).markdown.length > 0
+    )
+    return (
+      <div ref={rowRef} className="space-y-2">
+        {slices.map((slice) => {
+          const editKey = props.revealedDiff
+            ? nativeChatWorkRunEditKey([message], slice.blocks, props.revealedDiff)
+            : null
+          return (
+            <MessageRow
+              key={slice.id}
+              {...props}
+              message={slice}
+              workRun={undefined}
+              copyMessage={message}
+              continuesTurn={props.continuesTurn || slice !== controlsAt}
+              revealedDiff={
+                props.revealedDiff && editKey
+                  ? { ...props.revealedDiff, messageId: slice.id, editKey }
+                  : undefined
+              }
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
+  const notice = run === undefined && !isUser ? nativeChatNoticeBlock(blocks) : undefined
   if (notice) {
     return (
       <div ref={rowRef}>
@@ -130,7 +167,7 @@ export const MessageRow = memo(function MessageRow(
     )
   }
 
-  if (providerFrame) {
+  if (run === undefined && providerFrame && !isUser) {
     return (
       <div ref={rowRef}>
         <ProviderFrameRow block={providerFrame} />
