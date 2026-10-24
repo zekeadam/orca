@@ -1,3 +1,4 @@
+import { runAppMenuQuitCommand } from '../menu/register-app-menu'
 import type { BrowserWindow } from 'electron'
 import type { WindowShortcutAction } from '../../shared/window-shortcut-policy'
 
@@ -13,6 +14,9 @@ export function sendResolvedWindowShortcutAction(
       return
     case 'zoom':
       mainWindow.webContents.send('terminal:zoom', action.direction)
+      return
+    case 'quitApp':
+      runAppMenuQuitCommand()
       return
     case 'openSettings':
       mainWindow.webContents.send('ui:openSettings')
