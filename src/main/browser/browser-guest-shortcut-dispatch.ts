@@ -1,3 +1,4 @@
+import { runAppMenuQuitCommand } from '../menu/register-app-menu'
 import {
   resolveWindowShortcutAction,
   type WindowShortcutInput
@@ -43,6 +44,13 @@ export function forwardGuestShortcutInput(
   if (action?.type === 'zoom') {
     // Why: focused guest key events never reach the renderer-owned webview ref that applies Orca's page zoom.
     forwardBrowserPageZoom(event, action.direction)
+    return true
+  }
+  if (action?.type === 'quitApp') {
+    event.preventDefault()
+    if (!input.isAutoRepeat) {
+      runAppMenuQuitCommand()
+    }
     return true
   }
   if (input.isAutoRepeat) {

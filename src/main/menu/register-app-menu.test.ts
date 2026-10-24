@@ -647,7 +647,7 @@ describe('registerAppMenu', () => {
       const quit = findQuit()
       expect(quit?.role).toBeUndefined()
       expect(quit?.label).toBe(platform === 'darwin' ? 'Quit Orca' : 'Exit')
-      expect(quit?.accelerator).toBe(platform === 'win32' ? undefined : 'CmdOrCtrl+Q')
+      expect(quit?.accelerator).toBe(platform === 'win32' ? '' : 'CmdOrCtrl+Q')
       // Why untyped: the handler ignores its Electron arguments.
       const click: unknown = quit?.click
       if (typeof click === 'function') {

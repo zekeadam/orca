@@ -23,6 +23,15 @@ export const KEYBINDING_DEFINITION_CORE_1: readonly KeybindingDefinition[] = [
     conflictGroup: 'menu'
   },
   {
+    id: 'app.quit',
+    title: 'Quit Orca',
+    group: 'Global',
+    scope: 'global',
+    searchKeywords: ['shortcut', 'quit', 'exit', 'application', 'close app'],
+    defaultBindings: { darwin: ['Mod+Q'], linux: ['Mod+Q'], win32: [] },
+    conflictGroup: 'menu'
+  },
+  {
     id: 'app.forceReload',
     title: 'Force Reload',
     group: 'Global',

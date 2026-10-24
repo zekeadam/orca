@@ -1,3 +1,4 @@
+import { runAppMenuQuitCommand } from '../menu/register-app-menu'
 import { app, BrowserWindow, nativeTheme, type WebContents, type Event } from 'electron'
 import { join } from 'node:path'
 import { is } from '@electron-toolkit/utils'
@@ -210,10 +211,17 @@ export function createOrFocusDashboardPopout(
     }
   })
 
-  // Why: the pop-out has no renderer-side shortcut plumbing; resolve only the
+  // Why: the pop-out has no renderer-side shortcut plumbing; resolve quit and
   // zoom chords here and let every other key fall through untouched.
   window.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown') {
+      return
+    }
+    if (keybindingMatchesAction('app.quit', input, process.platform, options.getKeybindings?.())) {
+      event.preventDefault()
+      if (!input.isAutoRepeat) {
+        runAppMenuQuitCommand()
+      }
       return
     }
     const direction = resolveZoomShortcut(input, options.getKeybindings?.())

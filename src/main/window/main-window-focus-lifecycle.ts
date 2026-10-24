@@ -93,6 +93,7 @@ export function installMainWindowFocusLifecycle(args: {
       return
     }
     shortcutRecorderFocused = focused === true
+    mainWindow.webContents.setIgnoreMenuShortcuts(shortcutRecorderFocused)
   }
   ipcMain.on(shortcutRecorderFocusChannel, onShortcutRecorderFocused)
 
@@ -134,6 +135,9 @@ export function installMainWindowFocusLifecycle(args: {
     floatingPanelFocused = false
   }
   const resetShortcutRecorderFocus = (): void => {
+    if (shortcutRecorderFocused && !mainWindow.webContents.isDestroyed()) {
+      mainWindow.webContents.setIgnoreMenuShortcuts(false)
+    }
     shortcutRecorderFocused = false
   }
   let rendererProcessGone = false
