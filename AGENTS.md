@@ -149,3 +149,17 @@ Source-control and review changes must consider GitLab and other supported git p
 ## GitHub CLI Usage
 
 Be mindful of the user's `gh` CLI API rate limit — batch requests where possible and avoid unnecessary calls. All code, commands, and scripts must be compatible with macOS, Linux, and Windows.
+
+## Agent skills
+
+### Issue tracker
+
+Before reading or publishing issues and specs, read `docs/agents/issue-tracker.md`: GitHub Issues in `zekeadam/orca`.
+
+### Triage labels
+
+Before triaging or changing triage labels, read `docs/agents/triage-labels.md`: five canonical role names.
+
+### Domain docs
+
+Before exploring domain concepts or proposing architecture changes, read `docs/agents/domain.md`: single-context glossary and ADR layout.
