@@ -1,3 +1,10 @@
+# Repository Scope
+
+This project is a fork of Orca. Work in this fork on the `dev` branch by default.
+Create issues, pull requests, commits, pushes, or make any other changes in the original upstream Orca repository only when the user explicitly requests that upstream action. Ordinary work requests apply to this fork.
+
+Before any GitHub write, verify that the target is `zekeadam/orca`, not upstream `stablyai/orca`. Pass `--repo zekeadam/orca` to `gh` commands that support it, and use the equivalent explicit repository parameter for APIs and other tools. This also applies to skills such as Wayfinder that create or update issues, labels, comments, or pull requests. GitHub CLI can select upstream in a fork checkout; do not rely on its implicit repository selection or a previously configured default. For Git pushes, verify the destination remote URL points to the fork. Target upstream only for the specific action the user explicitly requested.
+
 # Design System
 
 All UI work — layout, color, typography, spacing, component selection, UX behavior — must follow [`docs/STYLEGUIDE.md`](./docs/STYLEGUIDE.md). Most of it is linted: `pnpm run check:code-quality:changed` fails on new restyles of a `components/ui/` primitive, raw palette colors, and computed `className` strings; `pnpm lint` fails on any class Tailwind cannot generate. See the Enforcement section of the style guide before suppressing either. Use the tokens defined in `src/renderer/src/assets/main.css` (the canonical source) and the shadcn primitives in `src/renderer/src/components/ui/`. Don't invent new color values, font sizes, or shadow tiers when a documented one already covers the role. When STYLEGUIDE.md is silent, follow the resolution order in its final section. In `components/native-chat/`, the "Chat type scale" and "Chat text colour, hover and focus" sections are binding, and `pnpm lint` fails on arbitrary font sizes, softened `text-foreground`, and weakened focus rings there.
