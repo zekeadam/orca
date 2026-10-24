@@ -110,7 +110,11 @@ export function renderTabBarSurface({
   })
 
   return (
-    <div ref={surfaceRef} className="flex items-stretch h-full overflow-hidden flex-1 min-w-0">
+    <div
+      data-appearance-surface="tab-bar"
+      ref={surfaceRef}
+      className="flex items-stretch h-full overflow-hidden flex-1 min-w-0"
+    >
       {tabStripOverflowState.hasOverflow ? (
         <Tooltip>
           <TooltipTrigger asChild>

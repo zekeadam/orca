@@ -1,3 +1,4 @@
+import { useDocumentAppearance } from './app-shell/use-document-appearance'
 // Why first, and why the import-free shim: react-dom reads
 // __REACT_DEVTOOLS_GLOBAL_HOOK__ once at module evaluation, so the global has to
 // exist before it. The observer below only wraps a property react-dom re-reads
@@ -62,6 +63,7 @@ if (!rootElement) {
 }
 
 function PopoutSettingsSync(): null {
+  useDocumentAppearance()
   const settings = useAppStore((state) => state.settings)
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { normalizeAppearanceColors } from '../../../../shared/appearance-colors'
 import { isAgentChatPermissionMode } from '../../../../shared/agent-chat-permission-mode'
 import { normalizeNativeChatAppearanceSettings } from '../../../../shared/native-chat-appearance-settings'
 import { normalizeAutoRenameBranchFromWorkDefaultOn } from '../../../../shared/auto-rename-branch-from-work-settings'
@@ -149,6 +150,7 @@ export function mergeSettings(
   const merged = {
     ...base,
     ...updates,
+    ...normalizeAppearanceColors({ ...base, ...updates }),
     notifications: {
       // Why: browser-stored settings can predate a newer notification field.
       ...defaults.notifications,

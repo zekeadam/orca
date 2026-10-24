@@ -1,3 +1,6 @@
+import { resolveOpaqueTerminalBackground } from '@/lib/terminal-title-contrast'
+import { appearanceAccentTokens } from '@/lib/appearance-colors'
+import { normalizeAppearanceColor } from '../../../../shared/appearance-colors'
 import './native-chat-appearance.css'
 import { useMemo, type CSSProperties } from 'react'
 import { useShallow } from 'zustand/react/shallow'
@@ -37,6 +40,7 @@ export function selectNativeChatAppearanceSettings(
   settings: Partial<GlobalSettings> | null | undefined
 ) {
   return {
+    accentColor: settings?.accentColor,
     theme: settings?.theme,
     terminalThemeDark: settings?.terminalThemeDark,
     terminalThemeLight: settings?.terminalThemeLight,
@@ -93,6 +97,7 @@ export function nativeChatAppearanceStyle(
     '--chat-code-font-family': font
   }
   let light = settings?.theme === 'light' || (settings?.theme === 'system' && !systemPrefersDark)
+  let accentBackground = light ? '#ffffff' : '#161616'
   if (matching) {
     const colors = resolveConfiguredTerminalColors(
       {
@@ -108,6 +113,9 @@ export function nativeChatAppearanceStyle(
     const hasThemeColors = Boolean(colors.background && colors.foreground)
     const background = hasThemeColors ? colors.background : '#000000'
     const foreground = hasThemeColors ? colors.foreground : '#fafafa'
+    accentBackground =
+      resolveOpaqueTerminalBackground(background, { appSurface: light ? 'light' : 'dark' }) ??
+      accentBackground
     light = isTerminalBackgroundLight(background)
     style.colorScheme = light ? 'light' : 'dark'
     // Ghost controls inherit a color, so remapping the token alone leaves the app's color in place.
@@ -152,6 +160,10 @@ export function nativeChatAppearanceStyle(
   const bodyMix = matching ? 100 : nativeChatContrastMix(appearance.contrast, light)
   style['--chat-foreground-mix'] = `${bodyMix}%`
   style['--chat-strong-mix'] = `${Math.min(100, bodyMix + (light ? 10 : 12))}%`
+  const accent = normalizeAppearanceColor(settings?.accentColor)
+  if (accent) {
+    Object.assign(style, appearanceAccentTokens(accent, accentBackground))
+  }
   return style
 }
 
