@@ -349,7 +349,8 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
 let lastRegisterOptions: RegisterAppMenuOptions | null = null
 
 export function runAppMenuQuitCommand(): void {
-  return lastRegisterOptions?.onQuit ? lastRegisterOptions.onQuit() : app.quit()
+  // Headless browser guests have no desktop menu and must never quit the host.
+  lastRegisterOptions?.onQuit?.()
 }
 
 export function registerAppMenu(options: RegisterAppMenuOptions): void {

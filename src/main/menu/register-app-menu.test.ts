@@ -31,7 +31,11 @@ vi.mock('electron', () => ({
   }
 }))
 
-import { getNextDefaultOnAppearanceSettingValue, registerAppMenu } from './register-app-menu'
+import {
+  getNextDefaultOnAppearanceSettingValue,
+  registerAppMenu,
+  runAppMenuQuitCommand
+} from './register-app-menu'
 import { markNativeBrowserPopupWindow } from '../browser/native-browser-popup-windows'
 
 const isMac = process.platform === 'darwin'
@@ -89,6 +93,16 @@ describe('registerAppMenu', () => {
       expect(windowSubmenu.find((item) => item.role === 'zoom')).toEqual({ role: 'zoom' })
     }
   )
+
+  it('routes shortcut quit through the registered lifecycle and ignores an absent handler', () => {
+    const onQuit = vi.fn()
+    registerAppMenu({ ...buildMenuOptions(), onQuit })
+    runAppMenuQuitCommand()
+    expect(onQuit).toHaveBeenCalledOnce()
+    registerAppMenu(buildMenuOptions())
+    expect(() => runAppMenuQuitCommand()).not.toThrow()
+    expect(onQuit).toHaveBeenCalledOnce()
+  })
 
   it('shows the Settings hint when the user assigns a shortcut', () => {
     registerAppMenu({
