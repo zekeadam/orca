@@ -28,7 +28,23 @@ test('Settings records a quit shortcut, persists it and exits through the app li
     .toEqual(['Mod+Shift+Q'])
   await orcaPage.screenshot({ path: testInfo.outputPath('quit-after.png') })
   const exited = new Promise<void>((resolve) => electronApp.process().once('exit', () => resolve()))
-  await orcaPage.getByPlaceholder('Search command or keys').blur()
-  await orcaPage.keyboard.press(`${modifier}+Shift+Q`)
+  const mainWindow = await electronApp.browserWindow(orcaPage)
+  // CDP key events exercise the recorder; main interception needs Electron's input event.
+  await mainWindow.evaluate((window, isMac) => {
+    window.webContents.emit(
+      'before-input-event',
+      { preventDefault() {} },
+      {
+        type: 'keyDown',
+        key: 'Q',
+        code: 'KeyQ',
+        shift: true,
+        meta: isMac,
+        control: !isMac,
+        alt: false,
+        isAutoRepeat: false
+      }
+    )
+  }, process.platform === 'darwin')
   await exited
 })
