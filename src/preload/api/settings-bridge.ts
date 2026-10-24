@@ -5,6 +5,7 @@ import type {
   WarpThemeImportSource
 } from '../../shared/terminal-custom-themes'
 import type { PreloadApi } from '../api-types'
+import type { SpellcheckCapabilities } from '../../shared/spellcheck-languages'
 
 export const settingsApi = {
   get: () => ipcRenderer.invoke('settings:get'),
@@ -21,6 +22,8 @@ export const settingsApi = {
     ipcRenderer.invoke('settings:update-pr-bot-author-override', args),
 
   listFonts: (): Promise<string[]> => ipcRenderer.invoke('settings:listFonts'),
+  getSpellcheckCapabilities: (): Promise<SpellcheckCapabilities> =>
+    ipcRenderer.invoke('settings:getSpellcheckCapabilities'),
 
   previewGhosttyImport: (): Promise<GhosttyImportPreview> =>
     ipcRenderer.invoke('settings:previewGhosttyImport'),
