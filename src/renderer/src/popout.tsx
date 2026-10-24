@@ -1,4 +1,3 @@
-import { useDocumentAppearance } from './app-shell/use-document-appearance'
 // Why first, and why the import-free shim: react-dom reads
 // __REACT_DEVTOOLS_GLOBAL_HOOK__ once at module evaluation, so the global has to
 // exist before it. The observer below only wraps a property react-dom re-reads
@@ -6,6 +5,7 @@ import { useDocumentAppearance } from './app-shell/use-document-appearance'
 import './lib/react-devtools-commit-hook-shim'
 import './lib/react-commit-cascade-observer'
 import './assets/main.css'
+import { useDocumentColors } from './app-shell/use-document-colors'
 
 import { StrictMode, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -63,7 +63,7 @@ if (!rootElement) {
 }
 
 function PopoutSettingsSync(): null {
-  useDocumentAppearance()
+  useDocumentColors()
   const settings = useAppStore((state) => state.settings)
 
   useEffect(() => {

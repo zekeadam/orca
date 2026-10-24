@@ -1,4 +1,4 @@
-import { useDocumentAppearance } from './app-shell/use-document-appearance'
+import { useDocumentColors } from './app-shell/use-document-colors'
 import './assets/main.css'
 import { StrictMode, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +20,7 @@ import { I18nProvider } from './i18n/I18nProvider'
 import { useAppStore } from './store'
 
 function SpaceWindowRoot(): React.JSX.Element {
-  useDocumentAppearance()
+  useDocumentColors()
   const { t } = useTranslation()
   const settings = useAppStore((state) => state.settings)
   const activeModal = useAppStore((state) => state.activeModal)
