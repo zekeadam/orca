@@ -17,7 +17,13 @@ test('Settings records a quit shortcut, persists it and exits through the app li
   await orcaPage.getByPlaceholder('Search settings').fill('shortcuts')
   await orcaPage.getByPlaceholder('Search command or keys').fill('quit')
   await expect(orcaPage.getByText('Quit Orca', { exact: true })).toBeVisible()
-  await orcaPage.screenshot({ path: testInfo.outputPath('quit-before.png') })
+  const privateSettingsPath = orcaPage
+    .locator('p')
+    .filter({ hasText: 'Customize shortcuts visually or edit' })
+  await orcaPage.screenshot({
+    path: testInfo.outputPath('quit-before.png'),
+    mask: [privateSettingsPath]
+  })
   await orcaPage.getByRole('button', { name: /(?:Add|Change) shortcut for Quit Orca/ }).click()
   const modifier = process.platform === 'darwin' ? 'Meta' : 'Control'
   await orcaPage.keyboard.press(`${modifier}+Shift+Q`)
@@ -26,7 +32,10 @@ test('Settings records a quit shortcut, persists it and exits through the app li
       orcaPage.evaluate(async () => (await window.api.keybindings.get()).overrides['app.quit'])
     )
     .toEqual(['Mod+Shift+Q'])
-  await orcaPage.screenshot({ path: testInfo.outputPath('quit-after.png') })
+  await orcaPage.screenshot({
+    path: testInfo.outputPath('quit-after.png'),
+    mask: [privateSettingsPath]
+  })
   const exited = new Promise<void>((resolve) => electronApp.process().once('exit', () => resolve()))
   const mainWindow = await electronApp.browserWindow(orcaPage)
   // CDP key events exercise the recorder; main interception needs Electron's input event.
