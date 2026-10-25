@@ -1,4 +1,5 @@
 import type { NativeChatBlock, NativeChatMessage } from '../../../../shared/native-chat-types'
+import { pairToolBlocks } from '../../../../shared/native-chat-tool-pairs'
 
 function isNotice(block: NativeChatBlock): boolean {
   return (
@@ -18,6 +19,13 @@ export function nativeChatMessageSlices(message: NativeChatMessage): NativeChatM
     return null
   }
   const slices: NativeChatMessage[] = []
+  // A result belongs to its call's card even when prose or a notice arrived between them.
+  const results = new Map(
+    pairToolBlocks(message.blocks).flatMap(({ call, result }) =>
+      call && result ? [[call, result] as const] : []
+    )
+  )
+  const pairedResults = new Set(results.values())
   let plain: NativeChatBlock[] = []
   let start = 0
   let hasTool = false
@@ -34,6 +42,9 @@ export function nativeChatMessageSlices(message: NativeChatMessage): NativeChatM
     hasTool = false
   }
   for (const [index, block] of message.blocks.entries()) {
+    if (block.type === 'tool-result' && pairedResults.has(block)) {
+      continue
+    }
     if (isNotice(block)) {
       flush()
       slices.push({
@@ -49,6 +60,12 @@ export function nativeChatMessageSlices(message: NativeChatMessage): NativeChatM
         start = index
       }
       plain.push(block)
+      if (block.type === 'tool-call') {
+        const result = results.get(block)
+        if (result) {
+          plain.push(result)
+        }
+      }
       hasTool ||= block.type === 'tool-call' || block.type === 'tool-result'
     }
   }

@@ -43,6 +43,8 @@ import {
 } from './native-chat-subagent-section-slots'
 import { nativeChatRowSpeaksOrActs } from '../../../../shared/native-chat-trailing-run'
 import { nativeChatTranscriptWorkRuns } from './native-chat-transcript-work-runs'
+import { nativeChatWorkRunEditKey } from '../../../../shared/native-chat-work-run'
+import { nativeChatNoticeBlock } from '../../../../shared/native-chat-notice'
 
 export type NativeChatTranscriptSlot =
   | NativeChatMessageSlot
@@ -87,6 +89,8 @@ export type NativeChatMessageSlot = {
   /** Set when this row draws an unbroken stretch of tool calls and thoughts as one run:
    *  every message in it, `message` first. */
   workRun?: readonly NativeChatMessage[]
+  /** Original messages before display slicing, for copy, navigation and edit numbering. */
+  sourceMessages?: readonly NativeChatMessage[]
 }
 
 export type NativeChatTranscriptSlotsInput = {
@@ -256,6 +260,9 @@ export function buildNativeChatTranscriptSlots(
       next.turnKey === slot.turnKey &&
       // The agent's own next step, not a notice or task row that trails its answer.
       (next.message.role === 'assistant' || next.message.role === 'reasoning') &&
+      (next.workRun !== undefined ||
+        (!nativeChatNoticeBlock(next.message.blocks) &&
+          !next.message.blocks.some((block) => block.type === 'text' && block.providerFrame))) &&
       next.drawsMessage
     ) {
       slot.continuesTurn = true
@@ -281,7 +288,8 @@ export function nativeChatSlotKey(slot: NativeChatTranscriptSlot): string {
  *  targets arrive as ids because the row that owns them may not be mounted to be pointed at. */
 export function nativeChatSlotIndexOf(
   slots: readonly NativeChatTranscriptSlot[],
-  messageId: string | undefined
+  messageId: string | undefined,
+  editKey?: string
 ): number {
   if (messageId === undefined) {
     return -1
@@ -290,7 +298,14 @@ export function nativeChatSlotIndexOf(
     (slot) =>
       slot.kind === 'message' &&
       (slot.message.id === messageId ||
-        slot.workRun?.some((member) => member.id === messageId) === true)
+        slot.sourceMessages?.some((message) => message.id === messageId) === true ||
+        slot.workRun?.some((member) => member.id === messageId) === true) &&
+      (editKey === undefined ||
+        nativeChatWorkRunEditKey(
+          slot.sourceMessages ?? slot.workRun ?? [slot.message],
+          (slot.workRun ?? [slot.message]).flatMap((message) => message.blocks),
+          { messageId, editKey }
+        ) !== null)
   )
 }
 

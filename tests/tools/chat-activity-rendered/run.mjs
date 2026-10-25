@@ -92,6 +92,21 @@ try {
     ).toBeVisible()
     await capture('narrow')
     report.checks.push('light and narrow layouts retain prose and disclosures')
+    await page.setViewportSize({ width: 1100, height: 850 })
+    await page.goto(`${pathToFileURL(path.join(output, 'renderer/index.html')).href}?mixed=1`)
+    await expect(
+      page.getByText('I am checking the requested change.', { exact: true })
+    ).toBeVisible()
+    await expect(
+      page.getByText('The requested change is ready to review.', { exact: true })
+    ).toBeVisible()
+    const mixedRun = page.locator('[data-native-chat-tool-run-state]')
+    await expect(mixedRun).toHaveCount(1)
+    await expect(mixedRun).toHaveAttribute('aria-expanded', 'false')
+    await mixedRun.click()
+    await expect(page.getByText('Automatic approval granted', { exact: true })).toHaveCount(2)
+    await capture('mixed-expanded')
+    report.checks.push('mixed-message tools and approvals share one group between preserved prose')
   }
   expect(errors).toEqual([])
   report.windows = await app.evaluate(({ BrowserWindow }) =>

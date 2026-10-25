@@ -97,6 +97,7 @@ function Transcript({
               key={slot.message.id}
               message={slot.message}
               workRun={slot.workRun}
+              sourceMessages={slot.sourceMessages}
               expandSignal={false}
               activeTurnIsWorking={slot.activeTurnIsWorking}
               trailingRun={slot.trailingRun}
@@ -329,7 +330,7 @@ describe('desktop technical activity projection', () => {
           }
         ])
       )
-    ).toEqual([['one'], 'growing'])
+    ).toEqual([['one', 'growing'], 'growing:block:1', 'growing:block:2', 'growing:block:3'])
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Automatic approval granted' })).toBeInTheDocument()
     )

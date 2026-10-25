@@ -88,6 +88,23 @@ const orderedMessages = messages.map((message, index) => ({
   ...message,
   timestamp: 1000 + index * 1000
 }))
+const mixedMessages: NativeChatMessage[] = [
+  orderedMessages[0]!,
+  orderedMessages[1]!,
+  {
+    ...prose('mixed', ''),
+    timestamp: 3000,
+    blocks: [
+      ...prose('before', 'I am checking the requested change.').blocks,
+      ...call('first').blocks,
+      ...approval('approval-1').blocks,
+      ...call('second').blocks,
+      ...approval('approval-2').blocks,
+      ...prose('after', 'The requested change is ready to review.').blocks
+    ]
+  }
+]
+const mixed = new URLSearchParams(location.search).has('mixed')
 function Fixture(): React.JSX.Element {
   const [appended, setAppended] = useState(false)
   return (
@@ -104,13 +121,15 @@ function Fixture(): React.JSX.Element {
             agent: 'codex',
             sessionId: 'chat-activity-proof',
             status: 'ready',
-            messages: appended
-              ? [
-                  ...orderedMessages.slice(0, -1),
-                  { ...call('streamed'), timestamp: 9500 },
-                  orderedMessages.at(-1)!
-                ]
-              : orderedMessages,
+            messages: mixed
+              ? mixedMessages
+              : appended
+                ? [
+                    ...orderedMessages.slice(0, -1),
+                    { ...call('streamed'), timestamp: 9500 },
+                    orderedMessages.at(-1)!
+                  ]
+                : orderedMessages,
             hasMore: false,
             loadingEarlier: false,
             loadEarlier: () => Promise.resolve('exhausted' as const),

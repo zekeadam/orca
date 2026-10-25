@@ -28,12 +28,14 @@ export function useNativeChatWorkRun(
     revealedDiff,
     activeTurnIsWorking,
     onLinkClick,
-    allowFileUriLinks
+    allowFileUriLinks,
+    sourceMessages
   }: {
     revealedDiff: NativeChatDiffReveal | undefined
     activeTurnIsWorking: boolean | undefined
     onLinkClick: CommentMarkdownLinkClickHandler | undefined
     allowFileUriLinks: boolean
+    sourceMessages?: readonly NativeChatMessage[]
   }
 ): NativeChatWorkRun | undefined {
   const entries = useMemo(() => {
@@ -67,9 +69,9 @@ export function useNativeChatWorkRun(
   const runReveal = useMemo(() => {
     const editKey =
       entries && revealedDiff
-        ? nativeChatWorkRunEditKey(members ?? [], entries.blocks, revealedDiff)
+        ? nativeChatWorkRunEditKey(sourceMessages ?? members ?? [], entries.blocks, revealedDiff)
         : null
     return revealedDiff && editKey ? { ...revealedDiff, editKey } : undefined
-  }, [entries, members, revealedDiff])
+  }, [entries, members, sourceMessages, revealedDiff])
   return entries && { ...entries, revealedDiff: runReveal }
 }

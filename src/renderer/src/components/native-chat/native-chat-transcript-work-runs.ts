@@ -3,6 +3,7 @@
 // row carrying only its turn's bar or rollup) ends a run just by sitting between its rows.
 
 import { agentJournalItemSubagentId } from '../../../../shared/agent-session-journal-producer'
+import { nativeChatMessageSlices } from './native-chat-message-slices'
 import {
   nativeChatWorkRunMember,
   nativeChatWorkRunSpans,
@@ -54,6 +55,9 @@ function workRunSlot(
   return {
     ...head,
     workRun: members.map((member) => member.message),
+    sourceMessages: Array.from(
+      new Set(members.flatMap((member) => member.sourceMessages ?? [member.message]))
+    ),
     trailingRun: members.some((member) => member.trailingRun),
     turnDiff,
     estimatedHeight: estimateNativeChatRowHeight(
@@ -77,6 +81,38 @@ export function nativeChatTranscriptWorkRuns(
   typography?: NativeChatRowTypography,
   collapseTechnicalActivity = false
 ): NativeChatTranscriptSlot[] {
+  slots = slots.flatMap((slot) => {
+    if (
+      !collapseTechnicalActivity ||
+      slot.kind !== 'message' ||
+      !slot.drawsMessage ||
+      slot.receipt ||
+      slot.subagentRoster
+    ) {
+      return [slot]
+    }
+    const slices = nativeChatMessageSlices(slot.message)
+    return slices
+      ? slices.map((message, index) => ({
+          ...slot,
+          message,
+          sourceMessages: [slot.message],
+          status: index === 0 ? slot.status : undefined,
+          turnDiff: index === slices.length - 1 ? slot.turnDiff : undefined,
+          trailingRun: slot.trailingRun && index === slices.length - 1,
+          estimatedHeight: estimateNativeChatRowHeight(
+            nativeChatRowContentMetrics(message, typography),
+            {
+              hasReceipt: false,
+              hasStatus: index === 0 && slot.status !== undefined,
+              hasTurnDiff: index === slices.length - 1 && slot.turnDiff !== undefined,
+              inSubagentSection: slot.depth > 0
+            },
+            typography
+          )
+        }))
+      : [slot]
+  })
   const rows = slots.map((slot) => workRunRow(slot, collapseTechnicalActivity))
   const runAt = new Map<number, NativeChatMessageSlot[]>()
   const joined = new Set<number>()
