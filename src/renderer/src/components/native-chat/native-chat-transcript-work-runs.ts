@@ -3,7 +3,10 @@
 // row carrying only its turn's bar or rollup) ends a run just by sitting between its rows.
 
 import { agentJournalItemSubagentId } from '../../../../shared/agent-session-journal-producer'
-import { nativeChatMessageSlices } from './native-chat-message-slices'
+import {
+  nativeChatMessageHasControlsProse,
+  nativeChatMessageSlices
+} from './native-chat-message-slices'
 import {
   nativeChatWorkRunMember,
   nativeChatWorkRunSpans,
@@ -92,11 +95,13 @@ export function nativeChatTranscriptWorkRuns(
       return [slot]
     }
     const slices = nativeChatMessageSlices(slot.message)
+    const controlsAt = slices?.findLast(nativeChatMessageHasControlsProse)
     return slices
       ? slices.map((message, index) => ({
           ...slot,
           message,
           sourceMessages: [slot.message],
+          continuesTurn: slot.continuesTurn || (controlsAt !== undefined && message !== controlsAt),
           status: index === 0 ? slot.status : undefined,
           turnDiff: index === slices.length - 1 ? slot.turnDiff : undefined,
           trailingRun: slot.trailingRun && index === slices.length - 1,

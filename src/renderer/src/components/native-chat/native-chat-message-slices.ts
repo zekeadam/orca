@@ -1,5 +1,15 @@
 import type { NativeChatBlock, NativeChatMessage } from '../../../../shared/native-chat-types'
 import { pairToolBlocks } from '../../../../shared/native-chat-tool-pairs'
+import { nativeChatNoticeBlock } from '../../../../shared/native-chat-notice'
+import { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
+
+export function nativeChatMessageHasControlsProse(message: NativeChatMessage): boolean {
+  return (
+    !nativeChatNoticeBlock(message.blocks) &&
+    !message.blocks.some((block) => block.type === 'text' && block.providerFrame) &&
+    deriveNativeChatRowContent(message.blocks).markdown.length > 0
+  )
+}
 
 function isNotice(block: NativeChatBlock): boolean {
   return (

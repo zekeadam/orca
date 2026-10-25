@@ -333,6 +333,21 @@ describe('mixed message call ownership and run projection', () => {
     expect(document.querySelector('[data-native-chat-tool-run-members]')?.scrollTop).toBe(120)
   })
 
+  it('keeps one original-message copy control across an intervening warning', () => {
+    const original = message('warning-between', [
+      prose('Intro.'),
+      ...command('a'),
+      { type: 'text', text: 'Warning between activity.', tone: 'warning' },
+      ...command('b'),
+      prose('Outro.')
+    ])
+    render(<Transcript messages={[original]} />)
+    const copy = screen.getByRole('button', { name: 'Copy message' })
+    expect(copy.closest('[data-native-chat-message-id]')).toHaveTextContent('Outro.')
+    expect(screen.getByText('Intro.')).toBeVisible()
+    expect(screen.getByText('Warning between activity.')).toBeVisible()
+  })
+
   it('keeps final prose copy controls before a visible error and context boundary', () => {
     const original = message('ending-notice', [
       ...command('a'),

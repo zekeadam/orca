@@ -21,7 +21,10 @@ import type {
 import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client-types'
 import { useNativeChatWorkRun } from './use-native-chat-work-run'
 import { useNativeChatRowNavigation } from './use-native-chat-row-navigation'
-import { nativeChatMessageSlices } from './native-chat-message-slices'
+import {
+  nativeChatMessageHasControlsProse,
+  nativeChatMessageSlices
+} from './native-chat-message-slices'
 import { nativeChatWorkRunEditKey } from '../../../../shared/native-chat-work-run'
 import { buildNativeChatTranscriptSlots } from './native-chat-transcript-slots'
 
@@ -112,12 +115,7 @@ export const MessageRow = memo(function MessageRow(props: MessageRowProps): Reac
           : []
       )
     : [props]
-  const controlsAt = rows.findLast(
-    ({ message }) =>
-      !nativeChatNoticeBlock(message.blocks) &&
-      !message.blocks.some((block) => block.type === 'text' && block.providerFrame) &&
-      deriveNativeChatRowContent(message.blocks).markdown.length > 0
-  )
+  const controlsAt = rows.findLast(({ message }) => nativeChatMessageHasControlsProse(message))
   return (
     <div className="space-y-2">
       {rows.map((row) => (
