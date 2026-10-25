@@ -10,6 +10,15 @@ const evidenceWorkflow = parse(
 )
 
 describe('PR workflow parallelism', () => {
+  it('keeps PR routing, checks and aggregation on GitHub-hosted Linux runners', () => {
+    for (const name of ['code_paths', 'preflight', 'dependency_isolation']) {
+      expect(workflow.jobs[name]['runs-on']).toBe('ubuntu-24.04')
+    }
+    expect(workflow.jobs.test.with.runner).toBe('ubuntu-24.04')
+    expect(workflow.jobs.verify['runs-on']).toBe('ubuntu-22.04')
+    expect(unitTestWorkflow.jobs.test['runs-on']).toBe('${{ inputs.runner }}')
+  })
+
   it('enforces import boundaries in the required static-analysis checks', () => {
     const guard = workflow.jobs.preflight.steps.find((step) =>
       step.run?.includes('bun config/scripts/check-import-boundaries.mjs')
