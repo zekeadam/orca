@@ -230,7 +230,9 @@ describe('createMainWindow', () => {
       .mocked(ipcMain.on)
       .mock.calls.find(([channel]) => channel === 'ui:setShortcutRecorderFocused')?.[1]
     expect(setFocusedListener).toBeTypeOf('function')
-    setFocusedListener?.({ sender: webContents } as never, true)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This IPC handler only reads sender; the event keeps the same mocked webContents identity.
+    const recorderEvent = { sender: webContents } as never
+    setFocusedListener?.(recorderEvent, true)
 
     const preventDefault = vi.fn()
     const isDarwin = process.platform === 'darwin'
@@ -249,7 +251,7 @@ describe('createMainWindow', () => {
 
     expect(webContents.setIgnoreMenuShortcuts).toHaveBeenCalledWith(true)
     if (setFocusedListener) {
-      Reflect.apply(setFocusedListener, undefined, [{ sender: webContents }, false])
+      setFocusedListener(recorderEvent, false)
     }
     expect(webContents.setIgnoreMenuShortcuts).toHaveBeenLastCalledWith(false)
     expect(preventDefault).not.toHaveBeenCalled()
