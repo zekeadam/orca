@@ -16,7 +16,7 @@ it('shares one setup and overlaps the compiler only after type-aware checks fini
   expect(workflow.jobs.static_analysis).toBeUndefined()
   expect(workflow.jobs.typecheck).toBeUndefined()
   expect(preflight.needs).toEqual(['code_paths'])
-  expect(preflight['runs-on']).toBe('blacksmith-8vcpu-ubuntu-2404')
+  expect(preflight['runs-on']).toBe('ubuntu-24.04')
   const installs = steps.filter(
     (step) => step.uses === './.github/actions/install-node-dependencies'
   )
@@ -29,6 +29,7 @@ it('shares one setup and overlaps the compiler only after type-aware checks fini
   expect(steps[0].with['fetch-depth']).toBeGreaterThanOrEqual(2)
   expect(compiler.background).toBe(true)
   expect(compiler.run).toContain('pnpm run typecheck:ci')
+  expect(compiler.run).toContain('--bun-concurrency=1 --bun-threads=2')
   const bunSetup = steps.find((step) => step.name === 'Set up Bun for preflight checks')
   expect(bunSetup.with['bun-version-file']).toBe('config/.bun-version')
   expect(bunSetup.if).toBeUndefined()
