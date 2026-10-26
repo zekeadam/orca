@@ -1,6 +1,8 @@
 import { Redirect, useLocalSearchParams } from 'expo-router'
 import { firstParam } from '../../../../src/navigation/route-param-reader'
 
+export const reportsFirstPaint = false
+
 // The Pull Request view is now a segment of the Source Control hub. This route
 // stays as a thin redirect so existing deep links land on the hub with the Pull
 // Request segment selected. The wide-layout dock opens the same hub with
