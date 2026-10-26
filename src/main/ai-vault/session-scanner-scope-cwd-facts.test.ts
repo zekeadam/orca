@@ -62,10 +62,14 @@ it.each([false, true])('keeps cold authority with read failure=%s', async (failR
       index + 1
     )
     if (index === 0) {
+      const { atime, mtime } = await stat(path)
       const context = jsonLines([{ type: 'turn_context', payload: { cwd: '/repo' } }])
       await appendFile(path, `\n${context}\n`)
+      // Keep this fixture outside the recent-session parse batch after appending.
+      await utimes(path, atime, mtime)
     }
     const { mtimeMs, size: sizeBytes, mtime } = await stat(path)
+    expect(mtimeMs).toBe(Date.UTC(2026, 9, index + 1, 10))
     const parsed = await parseAgentSessionFileCached(
       {
         agent: 'codex',

@@ -622,49 +622,53 @@ describeRender('the Route A page in a real browser', () => {
     }
   }, 120_000)
 
-  it('says nothing for a redirect screen whose target is still behind its chunk', async () => {
-    // The `pr` route renders a `Redirect` into the source-control hub and nothing else. It commits,
-    // sends the document on, and stays mounted behind the target's fallback while that chunk loads.
-    const target = routeChunks['./h/[hostId]/source-control/[worktreeId].tsx']
-    expect(target, Object.keys(routeChunks).join(' ')).toBeTruthy()
-    const path = `/assets/${target}`
-    let arrive = () => {}
-    heldChunks.set(
-      path,
-      new Promise((resolve) => {
-        arrive = resolve
-      })
-    )
-    try {
-      const route = `${HOST_ROUTE}/pr/render-check-tree`
-      const opened = await openPage({
-        shellRoute: { pathname: route },
-        shellPageRoutes: [HOST_ROUTE_PATTERN, '/h/[hostId]/pr/[worktreeId]']
-      })
-      await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
-      await opened.page.waitForFunction(
-        () => location.pathname.includes('/source-control/'),
-        undefined,
-        { timeout: 30_000, polling: 250 }
+  it.each(['pr', 'history'])(
+    'says nothing for a %s redirect whose target is still behind its chunk',
+    async (segment) => {
+      // These routes render a `Redirect` into the source-control hub and nothing else. It commits,
+      // sends the document on, and stays mounted behind the target's fallback while that chunk loads.
+      const target = routeChunks['./h/[hostId]/source-control/[worktreeId].tsx']
+      expect(target, Object.keys(routeChunks).join(' ')).toBeTruthy()
+      const path = `/assets/${target}`
+      let arrive = () => {}
+      heldChunks.set(
+        path,
+        new Promise((resolve) => {
+          arrive = resolve
+        })
       )
-      // The router has moved on and the hub is still arriving, so the document is showing nothing.
-      await opened.page.waitForTimeout(1_000)
-      expect(await paintReports(opened.page, paintName)).toBe(0)
+      try {
+        const route = `${HOST_ROUTE}/${segment}/render-check-tree`
+        const opened = await openPage({
+          shellRoute: { pathname: route },
+          shellPageRoutes: [HOST_ROUTE_PATTERN, `/h/[hostId]/${segment}/[worktreeId]`]
+        })
+        await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
+        await opened.page.waitForFunction(
+          () => location.pathname.includes('/source-control/'),
+          undefined,
+          { timeout: 30_000, polling: 250 }
+        )
+        // The router has moved on and the hub is still arriving, so the document is showing nothing.
+        await opened.page.waitForTimeout(1_000)
+        expect(await paintReports(opened.page, paintName)).toBe(0)
 
-      arrive()
-      await opened.page.waitForFunction(
-        (name) =>
-          (globalThis.__orcaRenderCheckNotifies ?? []).filter((frame) => frame.name === name)
-            .length > 0,
-        paintName,
-        { timeout: 30_000, polling: 250 }
-      )
-      await opened.page.close()
-    } finally {
-      arrive()
-      heldChunks.delete(path)
-    }
-  }, 120_000)
+        arrive()
+        await opened.page.waitForFunction(
+          (name) =>
+            (globalThis.__orcaRenderCheckNotifies ?? []).filter((frame) => frame.name === name)
+              .length > 0,
+          paintName,
+          { timeout: 30_000, polling: 250 }
+        )
+        await opened.page.close()
+      } finally {
+        arrive()
+        heldChunks.delete(path)
+      }
+    },
+    120_000
+  )
 
   it('refuses a target the shell will not take, rather than opening it in the page', async () => {
     // The double grants only `fault`, so `notifyNavigate` answers false -- the shell-disposed and
