@@ -7,6 +7,7 @@ import {
   nativeChatWorkRunEntries
 } from '../../../../shared/native-chat-work-run'
 import { NativeChatReasoningRow } from './NativeChatReasoningRow'
+import { NativeChatAutoApprovalMessage } from './NativeChatAutoApprovalNotice'
 import type { NativeChatToolRunAsides } from './NativeChatToolRun'
 import type { NativeChatDiffReveal } from './native-chat-turn-diffs'
 
@@ -27,30 +28,35 @@ export function useNativeChatWorkRun(
     revealedDiff,
     activeTurnIsWorking,
     onLinkClick,
-    allowFileUriLinks
+    allowFileUriLinks,
+    sourceMessages
   }: {
     revealedDiff: NativeChatDiffReveal | undefined
     activeTurnIsWorking: boolean | undefined
     onLinkClick: CommentMarkdownLinkClickHandler | undefined
     allowFileUriLinks: boolean
+    sourceMessages?: readonly NativeChatMessage[]
   }
 ): NativeChatWorkRun | undefined {
   const entries = useMemo(() => {
     if (!members) {
       return undefined
     }
-    const { blocks, thoughtsBefore, thoughtsAfter } = nativeChatWorkRunEntries(members)
-    const thought = (message: NativeChatMessage): React.JSX.Element => (
-      // Keyed by the thought, so it stays mounted as calls arrive after it.
-      <NativeChatReasoningRow
-        key={`thought:${message.id}`}
-        message={message}
-        markdown={deriveNativeChatRowContent(message.blocks).markdown}
-        turnIsWorking={activeTurnIsWorking}
-        onLinkClick={onLinkClick}
-        allowFileUriLinks={allowFileUriLinks}
-      />
-    )
+    const { blocks, thoughtsBefore, thoughtsAfter } = nativeChatWorkRunEntries(members, true)
+    const thought = (message: NativeChatMessage): React.JSX.Element =>
+      message.role !== 'reasoning' ? (
+        <NativeChatAutoApprovalMessage key={`approval:${message.id}`} message={message} />
+      ) : (
+        // Keyed by the thought, so it stays mounted as calls arrive after it.
+        <NativeChatReasoningRow
+          key={`thought:${message.id}`}
+          message={message}
+          markdown={deriveNativeChatRowContent(message.blocks).markdown}
+          turnIsWorking={activeTurnIsWorking}
+          onLinkClick={onLinkClick}
+          allowFileUriLinks={allowFileUriLinks}
+        />
+      )
     const before = new Map<NativeChatBlock, React.JSX.Element[]>()
     for (const [block, thoughts] of thoughtsBefore) {
       before.set(block, thoughts.map(thought))
@@ -63,9 +69,9 @@ export function useNativeChatWorkRun(
   const runReveal = useMemo(() => {
     const editKey =
       entries && revealedDiff
-        ? nativeChatWorkRunEditKey(members ?? [], entries.blocks, revealedDiff)
+        ? nativeChatWorkRunEditKey(sourceMessages ?? members ?? [], entries.blocks, revealedDiff)
         : null
     return revealedDiff && editKey ? { ...revealedDiff, editKey } : undefined
-  }, [entries, members, revealedDiff])
+  }, [entries, members, sourceMessages, revealedDiff])
   return entries && { ...entries, revealedDiff: runReveal }
 }

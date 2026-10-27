@@ -1,0 +1,124 @@
+import { _electron as electron, expect } from '@stablyai/playwright-test'
+import { build as buildMain } from 'esbuild'
+import { build as buildRenderer } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { resolveBuildSourceCommit } from '../../../config/scripts/build-source-commit.mjs'
+
+if (process.env.ORCA_BACKGROUND_LAUNCH !== '1') {
+  throw new Error('Requires background launch')
+}
+const baseline = process.argv.includes('--baseline')
+const root = fileURLToPath(new URL('../../../', import.meta.url))
+const output = path.join(
+  root,
+  '.bench-fixtures/chat-activity-rendered',
+  baseline ? 'before' : 'after'
+)
+mkdirSync(output, { recursive: true })
+const main = path.join(output, 'main.cjs')
+await buildMain({
+  entryPoints: [path.join(root, 'tests/tools/benchmarks/spinner-rendering/main.ts')],
+  outfile: main,
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  external: ['electron']
+})
+await buildRenderer({
+  configFile: false,
+  root: import.meta.dirname,
+  base: './',
+  logLevel: 'silent',
+  plugins: [react(), tailwindcss()],
+  resolve: { alias: { '@': path.join(root, 'src/renderer/src') } },
+  build: { outDir: path.join(output, 'renderer'), emptyOutDir: true }
+})
+const { ELECTRON_RUN_AS_NODE: _runAsNode, ...env } = process.env
+const app = await electron.launch({ args: [main], env: { ...env, ORCA_BACKGROUND_LAUNCH: '1' } })
+const report = {
+  baseline,
+  sourceCommit: resolveBuildSourceCommit(),
+  syntheticDataOnly: true,
+  checks: []
+}
+try {
+  const page = await app.firstWindow()
+  const errors = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  const cdp = await page.context().newCDPSession(page)
+  await page.goto(pathToFileURL(path.join(output, 'renderer/index.html')).href)
+  await expect(page.getByText('I am checking the requested change.', { exact: true })).toBeVisible()
+  await expect(
+    page.getByText('The requested change is ready to review.', { exact: true })
+  ).toBeVisible()
+  const capture = async (name) => {
+    const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' })
+    writeFileSync(path.join(output, `${name}.png`), Buffer.from(data, 'base64'))
+  }
+  await capture('collapsed')
+  if (!baseline) {
+    const notice = page.getByRole('button', { name: 'Orchestration notice', exact: true })
+    await expect(notice).toHaveAttribute('aria-expanded', 'false')
+    await notice.focus()
+    await page.keyboard.press('Space')
+    await expect(notice).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByText(/You have 1 orchestration message/)).toBeVisible()
+    await notice.click()
+    report.checks.push('provenance mail notice collapsed; keyboard expansion retains original text')
+    const runs = page.locator('[data-native-chat-tool-run-state]')
+    await expect(runs).toHaveCount(1)
+    const run = runs.first()
+    await expect(run).toHaveAttribute('aria-expanded', 'false')
+    await run.focus()
+    await page.keyboard.press('Enter')
+    await expect(run).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByText('Automatic approval granted', { exact: true })).toHaveCount(2)
+    report.checks.push('one collapsed group; keyboard expansion; retained auto approvals')
+    await page.getByRole('button', { name: 'Append activity', exact: true }).click()
+    await expect(run).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('button', { name: /echo streamed/ })).toBeVisible()
+    report.checks.push('stable expansion after appended technical activity')
+    await capture('expanded')
+    await run.click()
+    await page.evaluate(() => document.documentElement.classList.remove('dark'))
+    await capture('light')
+    await page.setViewportSize({ width: 480, height: 850 })
+    await expect(
+      page.getByText('I am checking the requested change.', { exact: true })
+    ).toBeVisible()
+    await capture('narrow')
+    report.checks.push('light and narrow layouts retain prose and disclosures')
+    await page.setViewportSize({ width: 1100, height: 850 })
+    await page.goto(`${pathToFileURL(path.join(output, 'renderer/index.html')).href}?mixed=1`)
+    await expect(
+      page.getByText('I am checking the requested change.', { exact: true })
+    ).toBeVisible()
+    await expect(
+      page.getByText('The requested change is ready to review.', { exact: true })
+    ).toBeVisible()
+    const mixedRun = page.locator('[data-native-chat-tool-run-state]')
+    await expect(mixedRun).toHaveCount(1)
+    await expect(mixedRun).toHaveAttribute('aria-expanded', 'false')
+    await mixedRun.click()
+    await expect(page.getByText('Automatic approval granted', { exact: true })).toHaveCount(2)
+    await capture('mixed-expanded')
+    report.checks.push('mixed-message tools and approvals share one group between preserved prose')
+  }
+  expect(errors).toEqual([])
+  report.windows = await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows().map((window) => ({
+      visible: window.isVisible(),
+      focused: window.isFocused()
+    }))
+  )
+  expect(report.windows.every((window) => !window.visible && !window.focused)).toBe(true)
+  report.checks.push('no renderer errors; all native windows hidden and unfocused')
+} finally {
+  writeFileSync(path.join(output, 'report.json'), `${JSON.stringify(report, null, 2)}\n`)
+  console.log(`Chat activity evidence: ${output}`)
+  await app.close()
+}

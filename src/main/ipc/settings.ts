@@ -41,26 +41,13 @@ import {
 } from '../../shared/computer-awake-mode'
 import { resolveAiVaultSearchSettings } from '../../shared/ai-vault-search-settings'
 import { applySessionSearchSettingsChange } from '../ai-vault-search/session-search-enablement'
+import { registerSpellcheckHandlers } from './settings-spellcheck'
+import { sanitizeRendererSettingsUpdate } from './settings-renderer-update'
 
 // Why: the whitelist is the source-of-truth for which keys we emit on. Casting
 // to a Set once at module load lets the IPC handler's per-key membership
 // check stay O(1) without re-coercing the readonly tuple on every call.
 const SETTINGS_CHANGED_WHITELIST_SET = new Set<string>(SETTINGS_CHANGED_WHITELIST)
-
-type LegacyTerminalScrollbackSettingsUpdate = Partial<GlobalSettings> & {
-  terminalScrollbackBytes?: unknown
-}
-
-function sanitizeRendererSettingsUpdate(args: Partial<GlobalSettings>): Partial<GlobalSettings> {
-  const { terminalScrollbackBytes: _legacyScrollbackBytes, ...sanitizedArgs } =
-    args as LegacyTerminalScrollbackSettingsUpdate
-  void _legacyScrollbackBytes
-  // Plugin consent and enablement are main-owned authority state. Renderer
-  // writes must pass the dedicated reviewed-fingerprint handlers.
-  delete sanitizedArgs.pluginConsents
-  delete sanitizedArgs.disabledPlugins
-  return sanitizedArgs
-}
 
 // Why: fields that appear in the View > Appearance submenu need the menu
 // rebuilt after any update so the checkbox `checked` state stays in sync
@@ -99,6 +86,7 @@ export function registerSettingsHandlers(
     }
   })
 
+  registerSpellcheckHandlers(store)
   ipcMain.handle('settings:get', () => {
     return readSettingsWithRuntimeEnvironmentPreference(store, app.getPath('userData'))
   })
@@ -126,7 +114,7 @@ export function registerSettingsHandlers(
   })
 
   ipcMain.handle('settings:set', async (event, args: Partial<GlobalSettings>) => {
-    const sanitizedArgs = sanitizeRendererSettingsUpdate(args)
+    const sanitizedArgs = sanitizeRendererSettingsUpdate(args, event.sender.session)
     // Why: connection/navigation code receives the generic settings writer; the
     // durable server preference has a dedicated Advanced-control boundary.
     delete sanitizedArgs.activeRuntimeEnvironmentId

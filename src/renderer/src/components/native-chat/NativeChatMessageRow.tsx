@@ -21,6 +21,12 @@ import type {
 import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client-types'
 import { useNativeChatWorkRun } from './use-native-chat-work-run'
 import { useNativeChatRowNavigation } from './use-native-chat-row-navigation'
+import {
+  nativeChatMessageHasControlsProse,
+  nativeChatMessageSlices
+} from './native-chat-message-slices'
+import { nativeChatWorkRunEditKey } from '../../../../shared/native-chat-work-run'
+import { buildNativeChatTranscriptSlots } from './native-chat-transcript-slots'
 
 /** What a user message says about its delivery: that nothing has confirmed it yet, quietly in
  *  place of its time, or that it did not go through, with its own Retry when the surface can send
@@ -57,6 +63,9 @@ export type MessageRowProps = {
   /** This row draws a run of tool calls and thoughts: every message in it, `message` first.
    *  The same row either way, so a row becoming a run keeps everything it has mounted. */
   workRun?: readonly NativeChatMessage[]
+  /** Mixed rows copy the original message rather than just their final prose slice. */
+  copyMessage?: NativeChatMessage
+  sourceMessages?: readonly NativeChatMessage[]
 }
 
 function rowHasContent(content: ReturnType<typeof deriveNativeChatRowContent>): boolean {
@@ -74,9 +83,53 @@ function rowHasContent(content: ReturnType<typeof deriveNativeChatRowContent>): 
  *  lifted card, assistant prose as body copy, reasoning de-emphasized.
  *  Memoized: a stream frame republishes the whole transcript, but settled rows
  *  keep their block identity, so only the changed row re-renders. */
-export const MessageRow = memo(function MessageRow(
-  props: MessageRowProps
-): React.JSX.Element | null {
+export const MessageRow = memo(function MessageRow(props: MessageRowProps): React.JSX.Element {
+  const slices =
+    !props.workRun && !props.sourceMessages ? nativeChatMessageSlices(props.message) : null
+  const slots = slices
+    ? buildNativeChatTranscriptSlots({
+        messages: [props.message],
+        collapseTechnicalActivity: true,
+        turnKeys: [undefined],
+        liveTurnKey: undefined,
+        receipts: new Map(),
+        turnStatuses: { active: null, completedByTurn: {} },
+        turnDiffs: new Map(),
+        expandedTurnKeys: new Set(),
+        isWorking: props.activeTurnIsWorking === true,
+        lifecycleWorking: false
+      })
+    : null
+  const rows = slots
+    ? slots.flatMap((slot) =>
+        slot.kind === 'message'
+          ? [
+              {
+                ...props,
+                message: slot.message,
+                workRun: slot.workRun,
+                sourceMessages: slot.sourceMessages,
+                copyMessage: props.message
+              }
+            ]
+          : []
+      )
+    : [props]
+  const controlsAt = rows.findLast(({ message }) => nativeChatMessageHasControlsProse(message))
+  return (
+    <div className="space-y-2">
+      {rows.map((row) => (
+        <NativeChatMessageContent
+          key={row.message.id}
+          {...row}
+          continuesTurn={props.continuesTurn || row !== controlsAt}
+        />
+      ))}
+    </div>
+  )
+}, sameMessageRowProps)
+
+function NativeChatMessageContent(props: MessageRowProps): React.JSX.Element | null {
   const {
     message,
     agentName,
@@ -97,13 +150,13 @@ export const MessageRow = memo(function MessageRow(
   const { markdown, prose } = content
   const isUser = message.role === 'user'
   const isReasoning = message.role === 'reasoning'
-  const isSystem = message.role === 'system'
   const providerFrame = blocks.find((block) => block.type === 'text' && block.providerFrame)
   const run = useNativeChatWorkRun(workRun, {
     revealedDiff: props.revealedDiff,
     activeTurnIsWorking,
     onLinkClick,
-    allowFileUriLinks
+    allowFileUriLinks,
+    sourceMessages: props.sourceMessages
   })
 
   const { scrollToTop, returnToView } = useNativeChatRowNavigation(rowRef, onScrollMessageToTop)
@@ -115,7 +168,7 @@ export const MessageRow = memo(function MessageRow(
     return null
   }
 
-  const notice = isSystem ? nativeChatNoticeBlock(blocks) : undefined
+  const notice = run === undefined && !isUser ? nativeChatNoticeBlock(blocks) : undefined
   if (notice) {
     return (
       <div ref={rowRef}>
@@ -130,7 +183,7 @@ export const MessageRow = memo(function MessageRow(
     )
   }
 
-  if (providerFrame) {
+  if (run === undefined && providerFrame && !isUser) {
     return (
       <div ref={rowRef}>
         <ProviderFrameRow block={providerFrame} />
@@ -169,27 +222,40 @@ export const MessageRow = memo(function MessageRow(
     )
   }
 
+  const editKey =
+    !run && props.sourceMessages && props.revealedDiff
+      ? nativeChatWorkRunEditKey(props.sourceMessages, message.blocks, props.revealedDiff)
+      : null
   return (
     <NativeChatAssistantMessageRow
-      props={props}
+      props={
+        !run && props.sourceMessages && props.revealedDiff
+          ? {
+              ...props,
+              revealedDiff: editKey ? { ...props.revealedDiff, editKey } : undefined
+            }
+          : props
+      }
       content={content}
       run={run}
       rowRef={rowRef}
       scrollToTop={scrollToTop}
     />
   )
-}, sameMessageRowProps)
+}
 
 /** A rebuilt transcript hands every run a fresh member list; same messages, same row. */
 function sameMessageRowProps(previous: MessageRowProps, next: MessageRowProps): boolean {
-  const { workRun: previousRun, ...previousRest } = previous
-  const { workRun: nextRun, ...nextRest } = next
+  const { workRun: previousRun, sourceMessages: previousSources, ...previousRest } = previous
+  const { workRun: nextRun, sourceMessages: nextSources, ...nextRest } = next
   const nextProps = new Map(Object.entries(nextRest))
   return (
     Object.keys(previousRest).length === nextProps.size &&
     Object.entries(previousRest).every(
       ([key, value]) => nextProps.has(key) && Object.is(value, nextProps.get(key))
     ) &&
+    previousSources?.length === nextSources?.length &&
+    (previousSources ?? []).every((member, index) => member === nextSources?.[index]) &&
     previousRun?.length === nextRun?.length &&
     (previousRun ?? []).every((member, index) => member === nextRun?.[index])
   )

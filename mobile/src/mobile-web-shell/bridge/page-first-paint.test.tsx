@@ -149,6 +149,46 @@ describe('a route that leaves before its frame lands', () => {
 })
 
 describe('which commit the page reports its frame from', () => {
+  it('never spends a frame on a redirect, even when its navigation is delayed', async () => {
+    const clock = frames()
+    let posted = 0
+    const report = createRouteScreenPaintReporter(clock.scheduler, () => {
+      posted += 1
+    })
+    const Redirect = withRouteScreenPaintReport({
+      default: () => null,
+      reportsFirstPaint: false
+    }).default
+    const Target = withRouteScreenPaintReport({ default: () => null }).default
+    let tree: ReactTestRenderer | null = null
+    await act(async () => {
+      tree = create(
+        <RouteScreenPaintProvider report={report}>
+          <Redirect />
+        </RouteScreenPaintProvider>
+      )
+    })
+    clock.tick()
+    clock.tick()
+    expect(posted).toBe(0)
+    expect(clock.pending()).toBe(0)
+
+    await act(async () => {
+      tree?.update(
+        <RouteScreenPaintProvider report={report}>
+          <Target />
+        </RouteScreenPaintProvider>
+      )
+    })
+    clock.tick()
+    expect(posted).toBe(0)
+    clock.tick()
+    expect(posted).toBe(1)
+    await act(async () => {
+      tree?.unmount()
+    })
+  })
+
   it('says nothing while the route chunk is still arriving', async () => {
     const route = deferredRouteChunk()
     const Screen = lazy(() => route.chunk.then(withRouteScreenPaintReport))

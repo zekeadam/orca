@@ -204,7 +204,8 @@ describe('createMainWindow', () => {
       send: vi.fn(),
       isDevToolsOpened: vi.fn(),
       openDevTools: vi.fn(),
-      closeDevTools: vi.fn()
+      closeDevTools: vi.fn(),
+      setIgnoreMenuShortcuts: vi.fn()
     }
     const browserWindowInstance = {
       webContents,
@@ -229,7 +230,9 @@ describe('createMainWindow', () => {
       .mocked(ipcMain.on)
       .mock.calls.find(([channel]) => channel === 'ui:setShortcutRecorderFocused')?.[1]
     expect(setFocusedListener).toBeTypeOf('function')
-    setFocusedListener?.({ sender: webContents } as never, true)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This IPC handler only reads sender; the event keeps the same mocked webContents identity.
+    const recorderEvent = { sender: webContents } as never
+    setFocusedListener?.(recorderEvent, true)
 
     const preventDefault = vi.fn()
     const isDarwin = process.platform === 'darwin'
@@ -246,6 +249,11 @@ describe('createMainWindow', () => {
       } as never
     )
 
+    expect(webContents.setIgnoreMenuShortcuts).toHaveBeenCalledWith(true)
+    if (setFocusedListener) {
+      setFocusedListener(recorderEvent, false)
+    }
+    expect(webContents.setIgnoreMenuShortcuts).toHaveBeenLastCalledWith(false)
     expect(preventDefault).not.toHaveBeenCalled()
     expect(webContents.send).not.toHaveBeenCalledWith('ui:toggleLeftSidebar')
   })

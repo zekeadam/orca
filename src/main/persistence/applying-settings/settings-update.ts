@@ -21,6 +21,7 @@ import { normalizeTerminalShortcutPolicy } from '../../../shared/keybindings'
 import { normalizeSourceControlGroupOrder } from '../../../shared/source-control-group-order'
 import { normalizeAppIconId } from '../../../shared/app-icon'
 import { normalizeUiLanguage } from '../../../shared/ui-language'
+import { normalizeSpellcheckLanguagesUpdate } from '../../../shared/spellcheck-languages'
 import { normalizeWorktreeVisibilityDefaults } from '../../../shared/external-worktree-visibility'
 import { normalizePRBotAuthorOverrides } from '../../../shared/pr-bot-author-overrides'
 import { normalizeMachineName } from '../../../shared/machine-name'
@@ -61,7 +62,7 @@ export function updateSettings(
   updates: Partial<GlobalSettings>,
   options: { notifyListeners?: boolean; originWebContentsId?: number } = {}
 ): GlobalSettings {
-  const sanitizedUpdates = stripRetiredGlobalSettings(updates)
+  const sanitizedUpdates = stripRetiredGlobalSettings(normalizeSpellcheckLanguagesUpdate(updates))
   Object.assign(sanitizedUpdates, normalizeAppearanceColors(updates))
   const linkBehavior = updates.terminalLinkClickBehavior
   if (linkBehavior === 'actions' || linkBehavior === 'open' || linkBehavior === 'none') {

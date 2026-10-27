@@ -4,6 +4,10 @@
 
 import { agentJournalItemSubagentId } from '../../../../shared/agent-session-journal-producer'
 import {
+  nativeChatMessageHasControlsProse,
+  nativeChatMessageSlices
+} from './native-chat-message-slices'
+import {
   nativeChatWorkRunMember,
   nativeChatWorkRunSpans,
   type NativeChatWorkRunRow
@@ -19,7 +23,10 @@ import type {
   NativeChatTranscriptSlot
 } from './native-chat-transcript-slots'
 
-function workRunRow(slot: NativeChatTranscriptSlot): NativeChatWorkRunRow {
+function workRunRow(
+  slot: NativeChatTranscriptSlot,
+  collapseTechnicalActivity: boolean
+): NativeChatWorkRunRow {
   // Every slot draws something: its message, or its turn's bar or rollup.
   if (slot.kind !== 'message') {
     return { member: null, draws: true, scope: undefined }
@@ -31,7 +38,8 @@ function workRunRow(slot: NativeChatTranscriptSlot): NativeChatWorkRunRow {
             slot.message,
             slot.receipt !== undefined,
             // At the top level the live line owns the open thought; only a section has none.
-            slot.depth > 0 && slot.activeTurnIsWorking
+            slot.depth > 0 && slot.activeTurnIsWorking,
+            collapseTechnicalActivity
           )
         : null,
     draws: true,
@@ -50,6 +58,9 @@ function workRunSlot(
   return {
     ...head,
     workRun: members.map((member) => member.message),
+    sourceMessages: Array.from(
+      new Set(members.flatMap((member) => member.sourceMessages ?? [member.message]))
+    ),
     trailingRun: members.some((member) => member.trailingRun),
     turnDiff,
     estimatedHeight: estimateNativeChatRowHeight(
@@ -70,12 +81,47 @@ function workRunSlot(
 
 export function nativeChatTranscriptWorkRuns(
   slots: readonly NativeChatTranscriptSlot[],
-  typography?: NativeChatRowTypography
+  typography?: NativeChatRowTypography,
+  collapseTechnicalActivity = false
 ): NativeChatTranscriptSlot[] {
-  const rows = slots.map(workRunRow)
+  slots = slots.flatMap((slot) => {
+    if (
+      !collapseTechnicalActivity ||
+      slot.kind !== 'message' ||
+      !slot.drawsMessage ||
+      slot.receipt ||
+      slot.subagentRoster
+    ) {
+      return [slot]
+    }
+    const slices = nativeChatMessageSlices(slot.message)
+    const controlsAt = slices?.findLast(nativeChatMessageHasControlsProse)
+    return slices
+      ? slices.map((message, index) => ({
+          ...slot,
+          message,
+          sourceMessages: [slot.message],
+          continuesTurn: slot.continuesTurn || (controlsAt !== undefined && message !== controlsAt),
+          status: index === 0 ? slot.status : undefined,
+          turnDiff: index === slices.length - 1 ? slot.turnDiff : undefined,
+          trailingRun: slot.trailingRun && index === slices.length - 1,
+          estimatedHeight: estimateNativeChatRowHeight(
+            nativeChatRowContentMetrics(message, typography),
+            {
+              hasReceipt: false,
+              hasStatus: index === 0 && slot.status !== undefined,
+              hasTurnDiff: index === slices.length - 1 && slot.turnDiff !== undefined,
+              inSubagentSection: slot.depth > 0
+            },
+            typography
+          )
+        }))
+      : [slot]
+  })
+  const rows = slots.map((slot) => workRunRow(slot, collapseTechnicalActivity))
   const runAt = new Map<number, NativeChatMessageSlot[]>()
   const joined = new Set<number>()
-  for (const span of nativeChatWorkRunSpans(rows)) {
+  for (const span of nativeChatWorkRunSpans(rows, collapseTechnicalActivity)) {
     runAt.set(
       span[0]!,
       span.flatMap((index) => {

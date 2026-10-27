@@ -64,6 +64,7 @@ export function useNativeChatTranscriptSlots({
   const slots = useMemo(
     () =>
       buildNativeChatTranscriptSlots({
+        collapseTechnicalActivity: true,
         messages,
         typography,
         turnKeys,

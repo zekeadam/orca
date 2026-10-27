@@ -98,7 +98,12 @@ export function RouteScreenPaintProvider({
  */
 export function withRouteScreenPaintReport(module: {
   readonly default: ComponentType<Record<string, unknown>>
+  readonly reportsFirstPaint?: boolean
 }): { default: ComponentType<Record<string, unknown>> } {
+  // Redirect-only routes draw nothing, even if navigation takes more than two frames.
+  if (module.reportsFirstPaint === false) {
+    return module
+  }
   const Screen = module.default
   function RouteScreenPaintReport(props: Record<string, unknown>): ReactElement {
     const report = useContext(RouteScreenPaintContext)

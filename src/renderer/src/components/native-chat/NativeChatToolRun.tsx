@@ -195,7 +195,9 @@ export function NativeChatToolRun({
   const settledHeaderIcon = nativeChatToolRunIconName(headerBlocks.filter(isToolCallBlock))
   const fallbackLabel =
     callCount === 0
-      ? translate('components.native-chat.tool.result', 'Result')
+      ? asideCount > 0 && blocks.length === 0
+        ? translate('components.native-chat.tool.technicalActivity', 'Technical activity')
+        : translate('components.native-chat.tool.result', 'Result')
       : callCount === 1
         ? translate('components.native-chat.tool.countOne', NATIVE_CHAT_TOOL_ACTIVITY_COPY.countOne)
         : translate('components.native-chat.tool.countN', NATIVE_CHAT_TOOL_ACTIVITY_COPY.countN, {
@@ -204,7 +206,7 @@ export function NativeChatToolRun({
 
   // A roster with no tool calls beside it is the whole run: rendering the tool
   // header too would announce "1 tool call" for activity that has none.
-  if (blocks.length === 0) {
+  if (blocks.length === 0 && asideCount === 0) {
     return standaloneRows.length > 0 ? <div className={spacing}>{standaloneRows}</div> : null
   }
 
@@ -260,7 +262,7 @@ export function NativeChatToolRun({
           {/* Only a stated success is marked done — see nativeChatToolRunOutcome —
               and never while live: between two calls nothing is running, and a
               mark that appeared then would flash on every call. */}
-          {!live && runSucceeded ? (
+          {!live && callCount > 0 && runSucceeded ? (
             <span className="flex h-[1lh] shrink-0 items-center">
               <Check aria-hidden className="size-3 shrink-0 text-chat-foreground-faint" />
             </span>

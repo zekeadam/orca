@@ -10,6 +10,7 @@ import { normalizeTerminalCustomThemes } from '../../../shared/terminal-custom-t
 import { normalizeTerminalDefaultShell } from '../../../shared/terminal-default-shell'
 import { projectSourceControlAiToLegacyCommitMessageAi } from '../../../shared/source-control-ai'
 import { normalizeUiLanguage } from '../../../shared/ui-language'
+import { normalizeSpellcheckLanguages } from '../../../shared/spellcheck-languages'
 import { normalizeNativeChatShellEnvironmentVariables } from '../../../shared/native-chat-shell-environment'
 import { loadedChatPermissionSetting } from '../../../shared/agent-chat-permission-mode'
 import {
@@ -133,6 +134,7 @@ export function normalizeLoadedGlobalSettings(
     // Why: missing means default-on; round-trips unchanged on non-mac since darwin consumers gate the effect.
     showMenuBarIcon: parsed.settings?.showMenuBarIcon !== false,
     uiLanguage: normalizeUiLanguage(parsed.settings?.uiLanguage),
+    spellcheckLanguages: normalizeSpellcheckLanguages(parsed.settings?.spellcheckLanguages),
     // Why: the structured runtime reads these per launch; a malformed hand-edited value must not fail a chat.
     nativeChatInheritShellEnvironment: parsed.settings?.nativeChatInheritShellEnvironment !== false,
     nativeChatShellEnvironmentVariables: normalizeNativeChatShellEnvironmentVariables(

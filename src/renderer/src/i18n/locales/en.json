@@ -18671,6 +18671,7 @@
         "milliseconds": "{{value0}}ms",
         "running": "Running…",
         "result": "Result",
+        "technicalActivity": "Technical activity",
         "countOne": "1 tool call",
         "countN": "{{value0}} tool calls",
         "moreCalls": "+{{value0}} more",
@@ -18965,6 +18966,7 @@
         "used": "Context: {{used}} tokens used, estimated from the last response.",
         "unreported": "Context usage is not available for this session."
       },
+      "orchestrationNotice": "Orchestration notice",
       "agentMessage": {
         "messageFrom": "Message from",
         "unnamedSender": "an agent"

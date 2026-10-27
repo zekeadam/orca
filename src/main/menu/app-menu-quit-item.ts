@@ -1,23 +1,44 @@
+import {
+  formatKeybindingList,
+  getEffectiveKeybindingsForAction,
+  type KeybindingOverrides
+} from '../../shared/keybindings'
 import { translateMain } from '../i18n/main-i18n'
 
-/**
- * The app menu's Quit entry: "Quit <macAppName>" in the macOS app menu, else File > Exit.
- * Why a handler instead of role 'quit': a host that must not exit on a user Quit
- * (`orca serve`, #15537) supplies `onQuit`; the native-quit guard only covers macOS.
- */
+/** User Quit must keep the serve host alive through its supplied lifecycle handler. */
 export function createAppMenuQuitItem(
   onQuit: (() => void) | undefined,
-  macAppName?: string
+  macAppName?: string,
+  keybindings?: KeybindingOverrides
 ): Electron.MenuItemConstructorOptions {
-  const exitLabel = macAppName === undefined ? translateMain('menu.exit', 'Exit') : undefined
-  if (!onQuit) {
-    return { role: 'quit', ...(exitLabel ? { label: exitLabel } : {}) }
-  }
+  const bindings = getEffectiveKeybindingsForAction('app.quit', process.platform, keybindings)
+  const nativeQuit = process.platform !== 'win32' && bindings.includes('Mod+Q')
+  const label =
+    macAppName === undefined
+      ? translateMain('menu.exit', 'Exit')
+      : translateMain('menu.quitApp', `Quit ${macAppName}`, { appName: macAppName })
+  const hint =
+    !nativeQuit && bindings.length ? `\t${formatKeybindingList(bindings, process.platform)}` : ''
   return {
-    label:
-      exitLabel ?? translateMain('menu.quitApp', `Quit ${macAppName}`, { appName: macAppName }),
-    // Same accelerator Electron gives role 'quit' (none on Windows).
-    ...(process.platform === 'win32' ? {} : { accelerator: 'CmdOrCtrl+Q' }),
-    click: () => onQuit()
+    ...(!onQuit ? { role: 'quit' as const } : {}),
+    label: `${label}${hint}`,
+    // Keep native Quit available without a window; custom chords use the shared shortcut policy.
+    accelerator: nativeQuit ? 'CmdOrCtrl+Q' : '',
+    ...(onQuit ? { click: () => onQuit() } : {})
+  }
+}
+
+export function createAppFileMenu(
+  settingsItem: Electron.MenuItemConstructorOptions,
+  onQuit: (() => void) | undefined,
+  keybindings?: KeybindingOverrides
+): Electron.MenuItemConstructorOptions {
+  return {
+    label: translateMain('menu.file', 'File'),
+    submenu: [
+      settingsItem,
+      { type: 'separator' },
+      createAppMenuQuitItem(onQuit, undefined, keybindings)
+    ]
   }
 }

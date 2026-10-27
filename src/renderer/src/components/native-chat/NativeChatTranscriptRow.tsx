@@ -125,7 +125,9 @@ export const NativeChatTranscriptRow = memo(function NativeChatTranscriptRow({
           previousTodoWrite={predecessors?.todowrite}
           previousUpdatePlan={predecessors?.update_plan}
           revealedDiff={
-            (workRun ?? [message]).some((member) => member.id === context.revealedDiff?.messageId)
+            (slot.sourceMessages ?? workRun ?? [message]).some(
+              (member) => member.id === context.revealedDiff?.messageId
+            )
               ? (context.revealedDiff ?? undefined)
               : undefined
           }
@@ -148,6 +150,8 @@ export const NativeChatTranscriptRow = memo(function NativeChatTranscriptRow({
               : undefined
           }
           workRun={workRun}
+          sourceMessages={slot.sourceMessages}
+          copyMessage={slot.sourceMessages?.[0]}
         />
       )}
       {newRowsMarker?.place === 'above-turn-bar' ? marker : null}

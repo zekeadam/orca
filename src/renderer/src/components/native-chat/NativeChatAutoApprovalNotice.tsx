@@ -1,21 +1,33 @@
 import { Check, ChevronRight } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { translate } from '@/i18n/i18n'
-import type { NativeChatTextBlock } from '../../../../shared/native-chat-types'
+import type { NativeChatMessage, NativeChatTextBlock } from '../../../../shared/native-chat-types'
 import { ProviderFrameRow } from './NativeChatTranscriptChrome'
 import { useNativeChatDisclosure } from './native-chat-disclosure-store'
 
-/** Only a provider's successful review, never an approval request or an assistant's prose. */
-export function isNativeChatAutoApprovalNotice(block: NativeChatTextBlock): boolean {
+export { isNativeChatAutoApprovalNotice } from '../../../../shared/native-chat-auto-approval'
+
+export function NativeChatAutoApprovalMessage({
+  message
+}: {
+  message: NativeChatMessage
+}): React.JSX.Element {
+  const seen = new Map<string, number>()
+  let first = true
   return (
-    block.tone === 'warning' &&
-    block.presentation === undefined &&
-    block.failure === undefined &&
-    block.orcaStop === undefined &&
-    block.providerFrame?.provider === 'codex' &&
-    (block.providerFrame.kind === 'notification:warning' ||
-      block.providerFrame.kind === 'notification:guardianWarning') &&
-    /^Automatic approval review approved \([^\n)]+\):\s+\S/.test(block.text)
+    <>
+      {message.blocks.flatMap((block) => {
+        if (block.type !== 'text') {
+          return []
+        }
+        const digest = block.providerFrame?.payload.digest ?? block.text
+        const occurrence = seen.get(digest) ?? 0
+        seen.set(digest, occurrence + 1)
+        const key = first ? message.id : `${message.id}:${digest}:${occurrence}`
+        first = false
+        return [<NativeChatAutoApprovalNotice key={key} block={block} messageId={key} />]
+      })}
+    </>
   )
 }
 
