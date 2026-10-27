@@ -4,6 +4,7 @@ import type {
   WarpThemeImportSource
 } from '../../shared/terminal-custom-themes'
 import type { GhosttyImportPreview, GlobalSettings } from '../../shared/global-settings-types'
+import type { SpellcheckCapabilities } from '../../shared/spellcheck-languages'
 
 export type SettingsApi = {
   get: () => Promise<GlobalSettings>
@@ -15,6 +16,7 @@ export type SettingsApi = {
   }) => Promise<GlobalSettings>
   updatePRBotAuthorOverride: (args: { author: string; isBot: boolean }) => Promise<GlobalSettings>
   listFonts: () => Promise<string[]>
+  getSpellcheckCapabilities?: () => Promise<SpellcheckCapabilities>
   previewGhosttyImport: () => Promise<GhosttyImportPreview>
   previewWarpThemeImport: (source: WarpThemeImportSource) => Promise<WarpThemeImportPreview>
   /** Subscribe to out-of-band settings updates (e.g. View > Appearance toggles) to stay in sync with main. */

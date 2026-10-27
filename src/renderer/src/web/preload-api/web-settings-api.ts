@@ -99,6 +99,11 @@ export function createWebSettingsApi(): Partial<PreloadApi> {
       },
       updatePRBotAuthorOverride: (args) => updateRuntimePRBotAuthorOverride(args),
       listFonts: () => Promise.resolve([]),
+      getSpellcheckCapabilities: async () => ({
+        managedBy: 'system',
+        availableLanguages: [],
+        enabledLanguages: []
+      }),
       onChanged: () => noopUnsubscribe
     } satisfies Partial<WebSettingsApi> as unknown as WebSettingsApi,
     agentAwake: {
