@@ -113,11 +113,16 @@ export function nativeChatRowContentMetrics(
     return cached.metrics
   }
   const content = deriveNativeChatRowContent(message.blocks)
+  const mailNotice =
+    message.role === 'user' && message.from?.orchestration?.message === 'mail-notice'
   const metrics: NativeChatRowContentMetrics = {
     role: message.role,
-    textLines: estimateNativeChatTextLines(content.markdown, typography.charsPerLine),
-    userFolds: message.role === 'user' && nativeChatUserMessageFolds(content.markdown),
-    imageCount: content.prose.filter((block) => block.type === 'image-ref').length,
+    textLines: mailNotice
+      ? 1
+      : estimateNativeChatTextLines(content.markdown, typography.charsPerLine),
+    userFolds:
+      !mailNotice && message.role === 'user' && nativeChatUserMessageFolds(content.markdown),
+    imageCount: mailNotice ? 0 : content.prose.filter((block) => block.type === 'image-ref').length,
     toolCount: content.tools.length,
     subagentGroupCount: content.subagentGroups.length
   }

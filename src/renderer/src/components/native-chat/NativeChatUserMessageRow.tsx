@@ -14,6 +14,7 @@ import { NativeChatCodeBlock } from './NativeChatCodeBlock'
 import { NativeChatCopyButton } from './NativeChatCopyButton'
 import { NativeChatMessageTimestamp } from './NativeChatMessageTimestamp'
 import { NativeChatAgentMessageSenders } from './NativeChatAgentMessageSenders'
+import { NativeChatOrchestrationDisclosure } from './NativeChatOrchestrationDisclosure'
 import { NativeChatImageAttachments } from './NativeChatTranscriptChrome'
 import type { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
 
@@ -102,45 +103,50 @@ export function NativeChatUserMessageRow({
         />
       ) : null}
       {/* A distinct surface separates the user's prompt from the assistant's prose. */}
-      <div
-        className={cn(
-          'max-w-[80%] text-sm',
-          from
-            ? 'select-text border-l-2 border-border/60 pl-3 text-chat-foreground'
-            : 'rounded-xl border border-chat-user-border bg-chat-user-surface px-3.5 py-2.5 text-chat-foreground-strong'
-        )}
+      <NativeChatOrchestrationDisclosure
+        messageId={message.id}
+        enabled={message.role === 'user' && from?.orchestration?.message === 'mail-notice'}
       >
-        {markdown ? (
-          <>
+        <div
+          className={cn(
+            'max-w-[80%] text-sm',
+            from
+              ? 'select-text border-l-2 border-border/60 pl-3 text-chat-foreground'
+              : 'rounded-xl border border-chat-user-border bg-chat-user-surface px-3.5 py-2.5 text-chat-foreground-strong'
+          )}
+        >
+          {markdown ? (
+            <>
+              <NativeChatImageAttachments
+                blocks={prose}
+                runtimeContext={runtimeContext}
+                enablePreview={runtimeContext !== undefined}
+              />
+              <NativeChatUserMessageFold
+                messageId={message.id}
+                markdown={markdown}
+                onRefolded={onRefolded}
+              >
+                <NativeChatMarkdown
+                  rowKey={message.id}
+                  content={markdown}
+                  variant="document"
+                  className="text-sm"
+                  renderCodeBlock={NativeChatCodeBlock}
+                  onLinkClick={onLinkClick}
+                  allowFileUriLinks={allowFileUriLinks}
+                />
+              </NativeChatUserMessageFold>
+            </>
+          ) : (
             <NativeChatImageAttachments
               blocks={prose}
               runtimeContext={runtimeContext}
               enablePreview={runtimeContext !== undefined}
             />
-            <NativeChatUserMessageFold
-              messageId={message.id}
-              markdown={markdown}
-              onRefolded={onRefolded}
-            >
-              <NativeChatMarkdown
-                rowKey={message.id}
-                content={markdown}
-                variant="document"
-                className="text-sm"
-                renderCodeBlock={NativeChatCodeBlock}
-                onLinkClick={onLinkClick}
-                allowFileUriLinks={allowFileUriLinks}
-              />
-            </NativeChatUserMessageFold>
-          </>
-        ) : (
-          <NativeChatImageAttachments
-            blocks={prose}
-            runtimeContext={runtimeContext}
-            enablePreview={runtimeContext !== undefined}
-          />
-        )}
-      </div>
+          )}
+        </div>
+      </NativeChatOrchestrationDisclosure>
       {message.sentAs === 'goal' ? (
         <div className="flex items-center gap-1 text-xs text-chat-foreground-faint">
           <Goal className="size-3" aria-hidden />

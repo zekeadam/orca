@@ -17,7 +17,10 @@ import { isNativeChatRowInLiveWorkingTurn } from '../../../../shared/native-chat
 import { nativeChatMessagesWaitingBehindLiveTurn } from '../../../../shared/native-chat-messages-waiting-behind-live-turn'
 import { nativeChatTurnBarRows } from '../../../../shared/native-chat-turn-grouping'
 import { nativeChatTurnFold, nativeChatTurnFoldRow } from '../../../../shared/native-chat-turn-fold'
-import { nativeChatRowRendersContent } from '../../../../shared/native-chat-row-content'
+import {
+  deriveNativeChatRowContent,
+  nativeChatRowRendersContent
+} from '../../../../shared/native-chat-row-content'
 import {
   type NativeChatRowTypography,
   estimateNativeChatRowHeight,
@@ -40,6 +43,8 @@ import {
 } from './native-chat-subagent-section-slots'
 import { nativeChatRowSpeaksOrActs } from '../../../../shared/native-chat-trailing-run'
 import { nativeChatTranscriptWorkRuns } from './native-chat-transcript-work-runs'
+import { nativeChatWorkRunEditKey } from '../../../../shared/native-chat-work-run'
+import { nativeChatNoticeBlock } from '../../../../shared/native-chat-notice'
 
 export type NativeChatTranscriptSlot =
   | NativeChatMessageSlot
@@ -84,9 +89,13 @@ export type NativeChatMessageSlot = {
   /** Set when this row draws an unbroken stretch of tool calls and thoughts as one run:
    *  every message in it, `message` first. */
   workRun?: readonly NativeChatMessage[]
+  /** Original messages before display slicing, for copy, navigation and edit numbering. */
+  sourceMessages?: readonly NativeChatMessage[]
 }
 
 export type NativeChatTranscriptSlotsInput = {
+  /** Desktop activity disclosure replaces whole-turn folding, keeping all prose visible. */
+  collapseTechnicalActivity?: boolean
   messages: readonly NativeChatMessage[]
   typography?: NativeChatRowTypography
   turnKeys: readonly (string | undefined)[]
@@ -126,7 +135,8 @@ export function buildNativeChatTranscriptSlots(
     lifecycleWorking,
     subagentSections: sections = NO_NATIVE_CHAT_SUBAGENT_SECTIONS,
     subagentChoices: choices = NO_NATIVE_CHAT_SUBAGENT_CHOICES,
-    liveReasoningId = null
+    liveReasoningId = null,
+    collapseTechnicalActivity = false
   } = input
   // One pass to decide what each row draws, then the fold over those readings —
   // so "is this the answer" and "does this row render prose" cannot disagree.
@@ -146,7 +156,7 @@ export function buildNativeChatTranscriptSlots(
   )
   const { foldedRows, foldableTurnKeys } = nativeChatTurnFold({
     rows: foldRows,
-    settledTurnKeys,
+    settledTurnKeys: collapseTechnicalActivity ? new Set() : settledTurnKeys,
     expandedTurnKeys
   })
   const bars = nativeChatTurnBarRows(messages, turnKeys)
@@ -196,7 +206,14 @@ export function buildNativeChatTranscriptSlots(
     )
     const drawsRow =
       receipt !== undefined ||
-      (!folded && nativeChatRowRendersContent(message.blocks) && message.id !== liveReasoningId)
+      (!folded &&
+        nativeChatRowRendersContent(message.blocks) &&
+        message.id !== liveReasoningId &&
+        !(
+          collapseTechnicalActivity &&
+          message.role === 'reasoning' &&
+          !deriveNativeChatRowContent(message.blocks).markdown.trim()
+        ))
     const roster = sectionSlots.rosterAt(message.id)
     if (drawsRow || status !== undefined || turnDiff !== undefined) {
       slots.push({
@@ -229,7 +246,7 @@ export function buildNativeChatTranscriptSlots(
     sectionSlots.openAnchoredAt(message, roster, turnKey)
   }
   sectionSlots.openBefore(pending, undefined, 0)
-  const drawn = nativeChatTranscriptWorkRuns(slots, typography)
+  const drawn = nativeChatTranscriptWorkRuns(slots, typography, collapseTechnicalActivity)
   for (let index = 0; index < drawn.length - 1; index += 1) {
     const slot = drawn[index]!
     const next = drawn[index + 1]!
@@ -243,6 +260,9 @@ export function buildNativeChatTranscriptSlots(
       next.turnKey === slot.turnKey &&
       // The agent's own next step, not a notice or task row that trails its answer.
       (next.message.role === 'assistant' || next.message.role === 'reasoning') &&
+      (next.workRun !== undefined ||
+        (!nativeChatNoticeBlock(next.message.blocks) &&
+          !next.message.blocks.some((block) => block.type === 'text' && block.providerFrame))) &&
       next.drawsMessage
     ) {
       slot.continuesTurn = true
@@ -268,7 +288,8 @@ export function nativeChatSlotKey(slot: NativeChatTranscriptSlot): string {
  *  targets arrive as ids because the row that owns them may not be mounted to be pointed at. */
 export function nativeChatSlotIndexOf(
   slots: readonly NativeChatTranscriptSlot[],
-  messageId: string | undefined
+  messageId: string | undefined,
+  editKey?: string
 ): number {
   if (messageId === undefined) {
     return -1
@@ -277,7 +298,14 @@ export function nativeChatSlotIndexOf(
     (slot) =>
       slot.kind === 'message' &&
       (slot.message.id === messageId ||
-        slot.workRun?.some((member) => member.id === messageId) === true)
+        slot.sourceMessages?.some((message) => message.id === messageId) === true ||
+        slot.workRun?.some((member) => member.id === messageId) === true) &&
+      (editKey === undefined ||
+        nativeChatWorkRunEditKey(
+          slot.sourceMessages ?? slot.workRun ?? [slot.message],
+          (slot.workRun ?? [slot.message]).flatMap((message) => message.blocks),
+          { messageId, editKey }
+        ) !== null)
   )
 }
 

@@ -69,7 +69,8 @@ describe('automatic approval review notices', () => {
     { providerFrame: { ...warning().providerFrame!, kind: 'notification:configWarning' } },
     { tone: 'error' },
     { failure: { kind: 'notSignedIn' as const } },
-    { presentation: 'compaction-skipped' }
+    { presentation: 'compaction-skipped' },
+    { contextClear: { operationId: 'clear', afterFence: 1, clearedAt: 2 } }
   ])('does not disguise a different source or a failure: %o', (override) => {
     render(<NativeChatNoticeRow block={{ ...warning(), ...override }} />)
     expect(screen.getByText(APPROVED)).toBeVisible()
