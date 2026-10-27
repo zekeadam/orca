@@ -9,7 +9,7 @@ import type { UpdateCheckOptions } from '../../shared/update-status-types'
 import { translateMain } from '../i18n/main-i18n'
 import { isNativeBrowserPopupWindow } from '../browser/native-browser-popup-windows'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
-import { createAppMenuQuitItem } from './app-menu-quit-item'
+import { createAppMenuQuitItem, createAppFileMenu } from './app-menu-quit-item'
 import { createAppWindowMenu } from './app-menu-window'
 
 export type AppearanceMenuState = {
@@ -163,17 +163,11 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
       { role: 'hideOthers' },
       { role: 'unhide' },
       { type: 'separator' },
-      createAppMenuQuitItem(options.onQuit, options.appMenuLabel ?? app.name)
+      createAppMenuQuitItem(options.onQuit, options.appMenuLabel ?? app.name, getKeybindings?.())
     ]
   }
 
-  const fileMenu: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.file', 'File'),
-    // Why: on Windows/Linux there is no app-named menu, so Settings and
-    // Quit live under File — matching the common platform convention and
-    // keeping all user-facing actions reachable from the in-window menu bar.
-    submenu: [settingsItem, { type: 'separator' }, createAppMenuQuitItem(options.onQuit)]
-  }
+  const fileMenu = createAppFileMenu(settingsItem, options.onQuit, getKeybindings?.())
 
   // Why: keep native menu hints while letting non-macOS Ctrl+Z/Ctrl+Y reach the focused terminal or DOM control.
   const undoRedoOptions: Electron.MenuItemConstructorOptions = isMac
@@ -353,6 +347,11 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
 }
 
 let lastRegisterOptions: RegisterAppMenuOptions | null = null
+
+export function runAppMenuQuitCommand(): void {
+  // Headless browser guests have no desktop menu and must never quit the host.
+  lastRegisterOptions?.onQuit?.()
+}
 
 export function registerAppMenu(options: RegisterAppMenuOptions): void {
   lastRegisterOptions = options
