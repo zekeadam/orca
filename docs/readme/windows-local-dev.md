@@ -15,7 +15,7 @@ The builder installs the locked desktop and mobile web dependencies, checks type
 
 The shortcut installer creates or updates two entries in the current user's Start menu:
 
-- **Orca Dev** starts the compiled build. It uses a separate `%APPDATA%/orca-dev-fork` profile.
+- **Orca Dev** starts the compiled build using the main Orca profile at `%APPDATA%/orca`. Projects, settings, and the active profile are shared. Fully quit the main Orca before starting the dev build: the profile lock allows one running instance, and a second launch hands off to the existing instance.
 - **Orca Dev - helyi build frissitese** rebuilds the local `dev` checkout. Close Orca Dev before rebuilding, then start it again afterward. The builder never pulls, switches branches, commits, or publishes.
 
 Both scripts resolve the repository from their own location. Run the shortcut installer again after moving the checkout or setting up another machine. Shortcuts use `RemoteSigned` only for their PowerShell process; the system execution policy stays unchanged.
