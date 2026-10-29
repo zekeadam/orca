@@ -8,6 +8,7 @@ import type { SettingsNavSection, SettingsNavTarget } from '@/lib/settings-navig
 import type { SettingsDeepLinkTargetWatch } from './settings-deep-link-target-watcher'
 
 export const SETTINGS_NAV_GROUPS = [
+  { id: 'z-settings', titleKey: 'settings.z.group', titleDefault: 'Z Settings' },
   {
     id: 'capabilities',
     titleKey: 'auto.components.settings.Settings.23c6874fdf',

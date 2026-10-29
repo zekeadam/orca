@@ -394,6 +394,7 @@ export function NativeChatStructuredSession(
           {composerShown && <NativeChatInstallSlot slot={install.slot} agentLabel={agentLabel} />}
           {composerShown ? (
             <NativeChatComposer
+              promptPresetsEnabled={props.isVisible && props.isFocusedGroup}
               ref={composerRef}
               terminalTabId={props.tabId}
               paneKey={paneKey}

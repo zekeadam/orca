@@ -33,6 +33,25 @@ function ids(
 }
 
 describe('settings navigation metadata', () => {
+  it('routes migrated custom controls to Z Settings without old-pane search matches', () => {
+    const sections = buildSettingsNavigationMetadata({
+      isMac: false,
+      isWindows: true,
+      isWebClient: false,
+      repos: []
+    })
+    const custom = sections.find((section) => section.id === 'z-settings')
+    expect(custom).toBeDefined()
+    expect(matchesSettingsSearch('Global', custom?.searchEntries ?? [])).toBe(false)
+    for (const query of ['Hungarian', 'Spellcheck Languages', 'Quit Orca']) {
+      expect(matchesSettingsSearch(query, custom?.searchEntries ?? [])).toBe(true)
+      expect(
+        sections
+          .filter((section) => section.id !== 'z-settings')
+          .some((section) => matchesSettingsSearch(query, section.searchEntries))
+      ).toBe(false)
+    }
+  })
   it.each([false, undefined])(
     'omits Chat navigation and search when the opt-in is %s',
     (enabled) => {
@@ -74,8 +93,9 @@ describe('settings navigation metadata', () => {
     }
   })
 
-  it('puts AI capability panes at the top on desktop', () => {
-    expect(ids().slice(0, 10)).toEqual([
+  it('puts Z Settings first, followed by AI capability panes on desktop', () => {
+    expect(ids().slice(0, 11)).toEqual([
+      'z-settings',
       'agents',
       'accounts',
       'orchestration',
@@ -177,8 +197,9 @@ describe('settings navigation metadata', () => {
     expect(ids({ isWebClient: true })).not.toContain('orca-account')
   })
 
-  it('puts web-safe AI capability panes at the top while hiding desktop-only panes', () => {
-    expect(ids({ isWebClient: true }).slice(0, 6)).toEqual([
+  it('puts Z Settings first, followed by web-safe AI capability panes', () => {
+    expect(ids({ isWebClient: true }).slice(0, 7)).toEqual([
+      'z-settings',
       'agents',
       'accounts',
       'orchestration',

@@ -4,23 +4,6 @@ import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 
 export const getGeneralEditorSearchEntries = createLocalizedCatalog(() => [
   {
-    title: translate('settings.spellcheckLanguages.title', 'Spellcheck Languages'),
-    description: translate(
-      'settings.spellcheckLanguages.description',
-      'Choose languages for spelling underlines and suggestions in Orca. Keep English selected when adding another language.'
-    ),
-    keywords: [
-      'spellcheck',
-      'spell check',
-      'spelling',
-      'languages',
-      'dictionary',
-      'Hungarian',
-      'magyar',
-      'English'
-    ]
-  },
-  {
     title: translate('auto.components.settings.general.search.ae21e806ce', 'Auto Save Files'),
     description: translate(
       'auto.components.settings.general.search.e9d948d3c3',

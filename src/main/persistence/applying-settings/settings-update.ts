@@ -50,9 +50,7 @@ import {
 export type SettingsMutationOperations = {
   state: PersistedState
   bumpLocalWorktreeScanGeneration: (repoId: string) => void
-  removeRetainedBlob: (
-    slot: Parameters<ProtectedSecretPersistence['removeRetainedBlob']>[0]
-  ) => void
+  removeRetainedBlob: ProtectedSecretPersistence['removeRetainedBlob']
   scheduleSave: () => void
   notifySettingsChanged: (updates: Partial<GlobalSettings>, originWebContentsId?: number) => void
 }

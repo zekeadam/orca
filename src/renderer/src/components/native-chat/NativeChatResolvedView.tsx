@@ -420,6 +420,7 @@ export function NativeChatResolvedView({
           detaching the ref keeps root typing, paste and reveal focus off it. */}
       <div hidden={shownPromptCard !== null} className="contents">
         <NativeChatComposer
+          promptPresetsEnabled={isVisible && isFocusedGroup}
           ref={shownPromptCard ? undefined : composerRef}
           inputOwnedByCard={shownPromptCard !== null}
           terminalTabId={terminalTabId}

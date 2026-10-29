@@ -9,7 +9,7 @@ import { useNativeChatDraft } from './use-native-chat-draft'
 import { useNativeChatComposerRecall } from './use-native-chat-composer-recall'
 import { useNativeChatLaunchDraftAdoption } from './use-native-chat-launch-draft-adoption'
 import { NativeChatComposerField } from './NativeChatComposerField'
-import type { NativeChatResolvedTarget } from './native-chat-composer-target'
+import { NativeChatComposerPresets } from './NativeChatComposerPresets'
 import { useNativeChatComposerAttachments } from './use-native-chat-composer-attachments'
 import { nativeChatImageSendBlock } from './native-chat-image-reattach'
 import { useNativeChatComposerHandle } from './use-native-chat-composer-handle'
@@ -31,23 +31,14 @@ import { useNativeChatComposerAppMenuSelection } from './use-native-chat-compose
 import { useNativeChatComposerSubmit } from './use-native-chat-composer-submit'
 import { useNativeChatComposerCommandPicker } from './use-native-chat-composer-command-picker'
 
-export type {
-  NativeChatComposerHandle,
-  NativeChatComposerProps
-} from './native-chat-composer-types'
+export type { NativeChatComposerHandle, NativeChatComposerProps }
 
-/**
- * Rich native input for the chat view. Sends prompts into the running agent
- * through the same verified runtime path as typed input (KTD4), so the agent
- * cannot distinguish native input from keystrokes. Enter sends; Shift+Enter
- * inserts a newline; multi-line is bracketed-paste wrapped; Esc interrupts.
- * Slash-command and `@file` autocomplete are agent-aware; image paste persists a
- * temp file and injects the agent-appropriate path (or reports unsupported).
- */
+/** Chat input using the running agent's structured or terminal send path. */
 const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatComposerProps>(
   function NativeChatComposerPane(
     {
       terminalTabId,
+      promptPresetsEnabled = false,
       paneKey,
       draftScopeKey = paneKey,
       targetPtyId,
@@ -75,10 +66,7 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
     },
     ref
   ): React.JSX.Element {
-    // Scope key shared with image attachments so an unsent draft + its attached
-    // images survive both TUI/GUI toggles and PTY replacement on reconnect.
-    // Why: local, SSH, and runtime reconnects can replace or temporarily clear
-    // the PTY id. Pane (or conversation) identity is the stable owner of unsent input.
+    // Stable draft identity survives reconnects and chat/terminal toggles.
     const imeEnterGesture = useImeEnterGestureOwnership()
     const { draft, setDraft, flushDraftAppends } = useNativeChatDraft(
       draftScopeKey,
@@ -147,12 +135,10 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
     })
 
     // Resolve the live ptyId for this chat leaf; the id names its owning host.
-    const resolveTarget = useCallback((): NativeChatResolvedTarget | null => {
-      if (!targetPtyId) {
-        return null
-      }
-      return { ptyId: targetPtyId }
-    }, [targetPtyId])
+    const resolveTarget = useCallback(
+      () => (targetPtyId ? { ptyId: targetPtyId } : null),
+      [targetPtyId]
+    )
 
     const attachments = useNativeChatComposerAttachments({
       attachmentScopeKey: draftScopeKey,
@@ -356,6 +342,17 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
 
     return (
       <NativeChatComposerField
+        promptPresets={
+          <NativeChatComposerPresets
+            enabled={promptPresetsEnabled && !inputOwnedByCard}
+            disabled={sendHeld || isDispatchingSessionOption}
+            scope={{ draftScopeKey, targetPtyId }}
+            editor={{ draft, setDraft, setCaret, textareaRef }}
+            structuredTransport={structuredTransport}
+            sendStructured={sendStructured}
+            sendPty={sendPty}
+          />
+        }
         draftScopeKey={draftScopeKey}
         textareaRef={textareaRef}
         draft={draft}

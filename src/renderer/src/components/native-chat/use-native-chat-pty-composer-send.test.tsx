@@ -25,9 +25,17 @@ function send(
   agent: AgentType,
   classification: NativeChatSendClassification,
   draft: string,
-  imagePaths: string[] = []
+  imagePaths: string[] = [],
+  presetText?: string
 ) {
-  const callbacks = { rejected: vi.fn(), unconfirmed: vi.fn(), submitted: vi.fn() }
+  const callbacks = {
+    rejected: vi.fn(),
+    unconfirmed: vi.fn(),
+    submitted: vi.fn(),
+    setDraft: vi.fn(),
+    clearImages: vi.fn(),
+    clearSkill: vi.fn()
+  }
   const { result } = renderHook(() =>
     useNativeChatPtyComposerSend({
       agent,
@@ -44,14 +52,14 @@ function send(
       sessionOptionsSurface: null,
       terminalTabId: 'tab',
       trackPendingSend: vi.fn(),
-      setDraft: vi.fn(),
+      setDraft: callbacks.setDraft,
       setCaret: vi.fn(),
-      clearSkillOrigin: vi.fn(),
-      clearImageAttachments: vi.fn(),
+      clearSkillOrigin: callbacks.clearSkill,
+      clearImageAttachments: callbacks.clearImages,
       setNotice: vi.fn()
     })
   )
-  result.current()
+  result.current(presetText)
   return callbacks
 }
 
@@ -94,4 +102,14 @@ it.each([
 
 it('reports nothing for a blank draft', () => {
   expect(send('codex', 'chat', '   ').submitted).not.toHaveBeenCalled()
+})
+
+it('sends a preset through the current PTY without consuming the draft or its attachments', () => {
+  const callbacks = send('claude', 'chat', 'Unfinished draft', ['/tmp/draft.png'], 'Preset text')
+  expect(sendNativeChatMessage).toHaveBeenCalledWith('pty', 'Preset text', expect.any(Object))
+  expect(sendNativeChatMessageWithImageAttachments).not.toHaveBeenCalled()
+  expect(callbacks.submitted).toHaveBeenCalledOnce()
+  expect(callbacks.setDraft).not.toHaveBeenCalled()
+  expect(callbacks.clearImages).not.toHaveBeenCalled()
+  expect(callbacks.clearSkill).not.toHaveBeenCalled()
 })

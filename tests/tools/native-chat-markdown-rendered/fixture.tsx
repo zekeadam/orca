@@ -26,8 +26,8 @@ function Fixture(): React.JSX.Element {
         input.current?.setSelectionRange(start, end)
         input.current?.focus()
       },
-      pill: () => input.current?.insertSkill(0, 0, '$review'),
-      file: () => input.current?.insertFileReferences(['src/example.ts']),
+      pill: () => input.current?.insertSkill?.(0, 0, '$review'),
+      file: () => input.current?.insertFileReferences?.(['src/example.ts']),
       remount: () => {
         setDraft(input.current?.value ?? '')
         setMount((current) => current + 1)

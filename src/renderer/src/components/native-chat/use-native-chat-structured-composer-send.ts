@@ -45,7 +45,8 @@ function isNativeChatStructuredHostCommand(
 
 export type NativeChatStructuredComposerSend = (
   text: string,
-  attachments?: readonly NativeChatComposerImageAttachment[]
+  attachments?: readonly NativeChatComposerImageAttachment[],
+  preserveDraft?: boolean
 ) => Promise<void>
 
 /** Send through the structured journal transport, clearing the composer only
@@ -61,7 +62,7 @@ export function useNativeChatStructuredComposerSend({
   setCaret
 }: UseNativeChatStructuredComposerSendArgs): NativeChatStructuredComposerSend {
   return useCallback<NativeChatStructuredComposerSend>(
-    async (text, attachments = imageAttachments): Promise<void> => {
+    async (text, attachments = imageAttachments, preserveDraft = false): Promise<void> => {
       // A picked command is held like Send: it would carry attachments still uploading, pathless.
       if (!structuredTransport || attachments.some((attachment) => attachment.pending)) {
         return
@@ -112,6 +113,9 @@ export function useNativeChatStructuredComposerSend({
             structuredTransport.sessionId,
             structuredTransport.runtimeEnvironmentId
           )
+          if (preserveDraft) {
+            return
+          }
           // Why: the send settles after a round trip, while this or another composer of the same
           // conversation may have changed the draft; only what was sent leaves it.
           const left = nativeChatComposerDraftLeftAfterSend(

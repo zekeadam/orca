@@ -14,8 +14,7 @@ import {
 } from '../../../../shared/keybindings'
 import { EMPTY_DISABLED_TUI_AGENTS } from './shortcut-groups'
 import { useAppStore } from '../../store'
-import { KeybindingsFileActions } from './KeybindingsFileActions'
-import { SettingsSubsectionHeader } from './SettingsFormControls'
+import { ShortcutsFileHeader } from './ShortcutsFileHeader'
 import {
   hasCommonBindingOverride,
   removeBindingOverride,
@@ -48,7 +47,9 @@ const platform: NodeJS.Platform = isMac
     ? 'win32'
     : 'linux'
 
-export function ShortcutsPane(): React.JSX.Element {
+export function ShortcutsPane({
+  customOnly = false
+}: { customOnly?: boolean } = {}): React.JSX.Element {
   useTranslation()
   const searchQuery = useAppStore((state) => state.settingsSearchQuery)
   const terminalShortcutPolicy = useAppStore(
@@ -130,7 +131,10 @@ export function ShortcutsPane(): React.JSX.Element {
   const { filterCounts, shortcutRows, visibleShortcutCount, visibleShortcutGroups } = useMemo(
     () =>
       buildShortcutRowVisibility({
-        groups,
+        groups: groups.map((group) => ({
+          ...group,
+          items: group.items.filter((item) => (item.id === 'app.quit') === customOnly)
+        })),
         keybindings,
         conflictByAction,
         terminalShortcutPolicy,
@@ -145,6 +149,7 @@ export function ShortcutsPane(): React.JSX.Element {
     [
       agentDashboardEnabled,
       conflictByAction,
+      customOnly,
       groups,
       keybindings,
       managedBrowserCreationEnabled,
@@ -294,9 +299,11 @@ export function ShortcutsPane(): React.JSX.Element {
   const showPolicy = matchesSettingsSearch(searchQuery, getTerminalShortcutPolicySearchEntry())
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
+    <div
+      className={customOnly ? 'space-y-3' : 'flex h-full min-h-0 flex-col gap-6 overflow-hidden'}
+    >
       <section className="flex min-h-0 flex-1 flex-col space-y-3">
-        {showPolicy ? (
+        {!customOnly && showPolicy ? (
           <ShortcutTerminalPolicyControl
             terminalShortcutPolicy={terminalShortcutPolicy}
             keywords={getTerminalShortcutPolicySearchEntry().keywords}
@@ -304,29 +311,7 @@ export function ShortcutsPane(): React.JSX.Element {
           />
         ) : null}
 
-        <SettingsSubsectionHeader
-          title={translate(
-            'auto.components.settings.ShortcutsPane.47f8f7aef9',
-            'Keyboard Shortcuts'
-          )}
-          description={
-            <>
-              {translate(
-                'auto.components.settings.ShortcutsPane.38e86e206a',
-                'Customize shortcuts visually or edit'
-              )}{' '}
-              <span className="font-mono text-[11px]">
-                {keybindingSnapshot?.path ??
-                  translate(
-                    'auto.components.settings.ShortcutsPane.d8c988dab4',
-                    '~/.orca/keybindings.json'
-                  )}
-              </span>{' '}
-              {translate('auto.components.settings.ShortcutsPane.4b7ae34062', 'directly.')}
-            </>
-          }
-          action={<KeybindingsFileActions />}
-        />
+        {!customOnly && <ShortcutsFileHeader />}
 
         {keybindingSnapshot?.diagnostics.length ? (
           <div className="space-y-1">
@@ -348,16 +333,24 @@ export function ShortcutsPane(): React.JSX.Element {
         {/* Below xl the rail stacks above the list in one column; pin the rail
             row to its content (auto) and let the list row take the rest, so the
             rail can't spill over the list the way two equal auto rows would. */}
-        <div className="grid min-h-0 flex-1 gap-6 max-xl:grid-rows-[auto_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
-          <ShortcutFilterRail
-            query={shortcutQuery}
-            onQueryChange={setShortcutQuery}
-            filter={shortcutFilter}
-            onFilterChange={setShortcutFilter}
-            filterCounts={filterCounts}
-            visibleCount={visibleShortcutCount}
-            totalCount={shortcutRows.length}
-          />
+        <div
+          className={
+            customOnly
+              ? 'space-y-3'
+              : 'grid min-h-0 flex-1 gap-6 max-xl:grid-rows-[auto_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]'
+          }
+        >
+          {!customOnly && (
+            <ShortcutFilterRail
+              query={shortcutQuery}
+              onQueryChange={setShortcutQuery}
+              filter={shortcutFilter}
+              onFilterChange={setShortcutFilter}
+              filterCounts={filterCounts}
+              visibleCount={visibleShortcutCount}
+              totalCount={shortcutRows.length}
+            />
+          )}
 
           <ShortcutRowsList
             // Why: overflow-y-auto otherwise creates a phantom horizontal scrollbar.
