@@ -420,6 +420,51 @@
     "followSymlinkedDirectoriesDescription": "Search linked folders in Quick Open and expand local linked folders in File Explorer.",
     "accounts": {
       "claudeRemoveFolder": "Orca deletes this account's Claude folder and its sign-in from this computer. Chat history shared with System default stays. If it is selected, the next Claude you start uses System default."
+    },
+    "z": {
+      "presets": {
+        "title": "Prompt presets",
+        "search": "Type to search prompts…",
+        "empty": "Add prompts in Z Settings.",
+        "noMatch": "No matching prompts.",
+        "sendHint": "Enter sends",
+        "insertHint": "inserts",
+        "name": "Preset {{number}} name",
+        "prompt": "Preset {{number}} prompt",
+        "unnamed": "Untitled preset",
+        "help": "Alt+E opens presets in the active chat. 1–9 sends; Shift+1–9 inserts. Type to search; Enter sends and Shift+Enter inserts. Changes save automatically. Empty prompts are hidden.",
+        "description": "Up to nine prompts for the active chat. Alt+E opens the picker.",
+        "keywords": {
+          "shortcut": "Alt+E",
+          "prompt": "prompt",
+          "presets": "presets",
+          "custom": "custom"
+        }
+      },
+      "title": "Z Settings",
+      "description": "Personal customizations and prompt presets."
+    },
+    "spellcheckLanguages": {
+      "title": "Spellcheck Languages",
+      "description": "Choose languages for spelling underlines and suggestions in Orca. Keep English selected when adding another language.",
+      "keywords": {
+        "spellcheck": "spellcheck",
+        "spellCheck": "spell check",
+        "spelling": "spelling",
+        "languages": "languages",
+        "dictionary": "dictionary",
+        "hungarian": "Hungarian",
+        "magyar": "magyar",
+        "english": "English"
+      },
+      "select": "Select languages",
+      "search": "Search languages…",
+      "noMatches": "No supported languages found.",
+      "saveFailed": "Could not save spellcheck languages.",
+      "retry": "Retry",
+      "unavailable": "Spellcheck languages are unavailable. Reopen Settings to retry.",
+      "system": "Managed by your operating system or browser. Change spelling languages in system or browser settings.",
+      "loading": "Loading spellcheck languages…"
     }
   },
   "menu": {
