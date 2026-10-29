@@ -133,11 +133,11 @@ function Fixture(): React.JSX.Element {
             hasMore: false,
             loadingEarlier: false,
             loadEarlier: () => Promise.resolve('exhausted' as const),
+            olderHistoryGeneration: 0,
             readPhase: 'ready'
           }}
           isWorking={false}
           expandSignal={false}
-          fontScale={1}
         />
       </div>
     </main>

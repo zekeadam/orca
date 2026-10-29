@@ -163,7 +163,7 @@ describe('Chat settings deep links', () => {
     const { container } = render(<NavigationHarness enabled={false} initialSection="chat" />)
     await waitFor(() => {
       expect(screen.getByRole('status', { name: 'Selected settings page' }).textContent).toBe(
-        'agents'
+        'z-settings'
       )
     })
     expect(container.querySelector('#chat')).toBeNull()

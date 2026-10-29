@@ -1,4 +1,5 @@
 import { normalizeNativeChatAppearanceSettings } from '../../../shared/native-chat-appearance-settings'
+import { normalizeAppearanceColors } from '../../../shared/appearance-colors'
 import type { GlobalSettings } from '../../../shared/global-settings-types'
 import { normalizeDisabledTuiAgents } from '../../../shared/tui-agent-selection'
 import { normalizeNativeChatProviderChoices } from '../../../shared/native-chat-providers'
@@ -60,6 +61,7 @@ export function updateSettings(
   options: { notifyListeners?: boolean; originWebContentsId?: number } = {}
 ): GlobalSettings {
   const sanitizedUpdates = stripRetiredGlobalSettings(normalizeSpellcheckLanguagesUpdate(updates))
+  Object.assign(sanitizedUpdates, normalizeAppearanceColors(updates))
   const linkBehavior = updates.terminalLinkClickBehavior
   if (linkBehavior === 'actions' || linkBehavior === 'open' || linkBehavior === 'none') {
     // Loaded defaults are ambiguous; synchronize the legacy switch only on an explicit write.

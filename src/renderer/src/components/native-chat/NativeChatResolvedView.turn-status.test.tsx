@@ -214,7 +214,7 @@ describe('NativeChatResolvedView turn status', () => {
   })
 
   // The host recorded the turn's end, so a pane mounted after it (a switch to the terminal and
-  // back) folds it behind its duration instead of drawing it unfinished.
+  // back) keeps its host duration and settled activity instead of drawing it unfinished.
   it('shows the host-ended latest turn with its host duration after a remount', () => {
     retained.session = transcript('ready', false, [userTurn, stepCall])
     setStatus({ state: 'done' })
@@ -225,7 +225,15 @@ describe('NativeChatResolvedView turn status', () => {
     renderPane()
 
     expect(screen.getByText('Worked for 1m 30s')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Toggle turn details' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Toggle turn details' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'pnpm build' })).toHaveAttribute(
+      'data-native-chat-tool-run-state',
+      'settled'
+    )
+    expect(screen.getByRole('button', { name: 'pnpm build' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
   })
 
   // The store's staleness drops a silent row after 30 minutes. A wait left unanswered that long

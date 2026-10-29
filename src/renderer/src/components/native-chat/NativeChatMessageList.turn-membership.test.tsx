@@ -191,7 +191,7 @@ import type { NativeChatMessage } from '../../../../shared/native-chat-types'
       ])
 
       expect(screen.getByText('Apple, banana, cherry.')).toBeInTheDocument()
-      expect(screen.queryByText('Thinking about fruit.')).toBeNull()
+      expect(screen.getByText('Thinking about fruit.')).toBeInTheDocument()
       const compact = screen.getByText('/compact')
       const previousStatus = screen.getByText('Worked for 4s')
       const ownStatus = screen.getByText('Worked for 2s')
@@ -251,7 +251,7 @@ import type { NativeChatMessage } from '../../../../shared/native-chat-types'
       ).toBe(true)
     })
 
-    it('keeps the row that says why a turn stopped visible in its folded turn', () => {
+    it('keeps narration and the row that says why a turn stopped visible', () => {
       const items = [
         ...fruitTurn(),
         item(
@@ -262,11 +262,11 @@ import type { NativeChatMessage } from '../../../../shared/native-chat-types'
       ]
       renderJournal(items)
 
-      expect(screen.queryByText('Thinking about fruit.')).toBeNull()
+      expect(screen.getByText('Thinking about fruit.')).toBeInTheDocument()
       expect(screen.getByText('The agent exited unexpectedly.')).toBeInTheDocument()
     })
 
-    it('folds a turn the provider resumed on its own under its own status', () => {
+    it('keeps prose and separate activity under a provider-resumed turn status', () => {
       const wake = agentJournalItemKey({
         provider: 'legacy',
         agent: 'claude',
@@ -287,9 +287,13 @@ import type { NativeChatMessage } from '../../../../shared/native-chat-types'
       const ownStatus = screen.getByText('Worked for 9s')
       expect(follows(ownStatus, screen.getByText('Apple, banana, cherry.'))).toBe(true)
       expect(follows(ownStatus, previousStatus)).toBe(true)
-      expect(screen.queryByText('The background build finished.')).toBeNull()
+      expect(screen.getByText('The background build finished.')).toBeInTheDocument()
       expect(screen.getByText('All tests pass now.')).toBeInTheDocument()
-      expect(screen.getAllByRole('button', { name: 'Toggle turn details' })).toHaveLength(2)
+      expect(screen.queryByRole('button', { name: 'Toggle turn details' })).toBeNull()
+      expect(screen.getAllByRole('button', { name: 'ls' })).toHaveLength(2)
+      for (const activity of screen.getAllByRole('button', { name: 'ls' })) {
+        expect(activity).toHaveAttribute('aria-expanded', 'false')
+      }
     })
 
     it("keeps the settled turn's duration while a turn the provider opened runs after it", () => {

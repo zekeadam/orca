@@ -306,10 +306,7 @@ import type {
         />
       )
 
-      expect(screen.getByRole('button', { name: 'Toggle turn details' })).toHaveAttribute(
-        'aria-expanded',
-        'false'
-      )
+      expect(screen.getByRole('button', { name: 'pwd' })).toHaveAttribute('aria-expanded', 'false')
       expect(screen.getByRole('button', { name: /Ran 2 subagents/ })).toHaveTextContent('1 failed')
       // The twin is the roster written out for clients that cannot draw the block.
       // This one draws it, so printing the sentence too would say it all twice.
@@ -366,10 +363,13 @@ import type {
         />
       )
 
-      expect(screen.queryByRole('button', { name: /pwd/ })).toBeNull()
-      fireEvent.click(screen.getByRole('button', { name: 'Toggle turn details' }))
-      // The run header and its single row name the same command.
-      expect(screen.getAllByRole('button', { name: /pwd/ }).length).toBeGreaterThan(0)
+      const activity = screen.getByRole('button', { name: 'pwd' })
+      expect(activity).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.queryByText('/repo')).toBeNull()
+      fireEvent.click(activity)
+      expect(activity).toHaveAttribute('aria-expanded', 'true')
+      // Opening the activity reveals its single command member.
+      expect(screen.getAllByRole('button', { name: /pwd/ })).toHaveLength(2)
       // Expanding must reveal the tools beside the roster, never a second copy of it.
       expect(screen.getAllByRole('button', { name: /Ran 2 subagents/ })).toHaveLength(1)
     })
@@ -620,16 +620,15 @@ import type {
     ]
   }
 
-  // A finished turn is the transcript's resting state, and it should read as the
-  // answer to the prompt — not as the transcript of the work that produced it.
-  describe('NativeChatMessageList settled turn fold', () => {
+  // Prose stays visible while technical activity has its own disclosure.
+  describe('NativeChatMessageList settled turn activity', () => {
     let restoreViewport = (): void => {}
     beforeAll(() => {
       restoreViewport = installNativeChatMessageListTestViewport()
     })
     afterAll(() => restoreViewport())
     afterEach(cleanup)
-    it('shows a settled turn as its prompt, its duration and its answer', () => {
+    it('shows a settled turn with all prose and separately collapsed technical activity', () => {
       const startedAt = Date.now() - 3000
       render(
         <NativeChatMessageList
@@ -642,15 +641,16 @@ import type {
 
       expect(screen.getByText('Please review this PR.')).toBeInTheDocument()
       expect(screen.getByText(ANSWER)).toBeInTheDocument()
-      expect(screen.queryByText(NARRATION)).toBeNull()
-      expect(screen.queryByText(MORE_NARRATION)).toBeNull()
-      expect(screen.getByRole('button', { name: 'Toggle turn details' })).toHaveAttribute(
+      expect(screen.getByText(NARRATION)).toBeInTheDocument()
+      expect(screen.getByText(MORE_NARRATION)).toBeInTheDocument()
+      expect(screen.getByText('Worked for 3s')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'pnpm test' })).toHaveAttribute(
         'aria-expanded',
         'false'
       )
     })
 
-    it('returns the whole turn when the reader opens it', () => {
+    it('opens tool activity without hiding the surrounding prose', () => {
       const startedAt = Date.now() - 3000
       render(
         <NativeChatMessageList
@@ -661,21 +661,22 @@ import type {
         />
       )
 
-      fireEvent.click(screen.getByRole('button', { name: 'Toggle turn details' }))
+      const activity = screen.getByRole('button', { name: 'pnpm test' })
+      expect(activity).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.queryByText('ok')).toBeNull()
+      fireEvent.click(activity)
 
       expect(screen.getByText(NARRATION)).toBeInTheDocument()
       expect(screen.getByText(MORE_NARRATION)).toBeInTheDocument()
       expect(screen.getByText(ANSWER)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Toggle turn details' })).toHaveAttribute(
+      expect(screen.getByRole('button', { name: 'shell Ran pnpm test' })).toHaveAttribute(
         'aria-expanded',
-        'true'
+        'false'
       )
+      expect(activity).toHaveAttribute('aria-expanded', 'true')
     })
 
-    // Nothing closes the disclosure when a turn ends; the fold arrives already
-    // closed. While the turn runs there is no fold at all, so the reader watches
-    // the work happen.
-    it('folds nothing while the turn is still running', () => {
+    it('keeps all prose visible while the turn is still running', () => {
       const startedAt = Date.now() - 3000
       render(
         <NativeChatMessageList
@@ -691,14 +692,12 @@ import type {
       expect(screen.queryByRole('button', { name: 'Toggle turn details' })).toBeNull()
     })
 
-    // The #23621 shape: the host folded a mid-turn send into the running turn, so
-    // the rows after it are still the opener's. One bar under the opener folds
-    // them all; the steered bubble stays visible and never grows a bar or group.
+    // A mid-turn send stays in its opener's turn, including on hosts without row scopes.
     it.each([
       ['states each row’s turn', true],
       ['states no scope', false]
     ])(
-      "folds the rows after a mid-turn send behind the opener's bar on a host that %s",
+      'keeps one duration and separate activity across a mid-turn send on a host that %s',
       (_host, statesScope) => {
         const startedAt = Date.now() - 3000
         const base = session(startedAt)
@@ -723,14 +722,18 @@ import type {
         )
 
         expect(screen.getByText('Also check the tests.')).toBeInTheDocument()
-        expect(screen.queryByText(NARRATION)).toBeNull()
-        expect(screen.queryByText(MORE_NARRATION)).toBeNull()
-        const toggles = screen.getAllByRole('button', { name: 'Toggle turn details' })
-        expect(toggles).toHaveLength(1)
-
-        fireEvent.click(toggles[0]!)
         expect(screen.getByText(NARRATION)).toBeInTheDocument()
         expect(screen.getByText(MORE_NARRATION)).toBeInTheDocument()
+        expect(screen.getAllByText('Worked for 1m 10s')).toHaveLength(1)
+        expect(document.querySelectorAll('[data-native-chat-turn-status]')).toHaveLength(1)
+        const activity = screen.getByRole('button', { name: 'pnpm test' })
+        expect(activity).toHaveAttribute('aria-expanded', 'false')
+        fireEvent.click(activity)
+        expect(activity).toHaveAttribute('aria-expanded', 'true')
+        expect(screen.getByRole('button', { name: 'shell Ran pnpm test' })).toHaveAttribute(
+          'aria-expanded',
+          'false'
+        )
       }
     )
 
@@ -769,7 +772,11 @@ import type {
       )
 
       expect(screen.getByText(ANSWER)).toBeInTheDocument()
-      expect(screen.queryByText(NARRATION)).toBeNull()
+      expect(screen.getByText(NARRATION)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'git push' })).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      )
     })
   })
 }

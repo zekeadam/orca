@@ -5,6 +5,7 @@
 import './lib/react-devtools-commit-hook-shim'
 import './lib/react-commit-cascade-observer'
 import './assets/main.css'
+import { useDocumentColors } from './app-shell/use-document-colors'
 
 import { StrictMode, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -62,6 +63,7 @@ if (!rootElement) {
 }
 
 function PopoutSettingsSync(): null {
+  useDocumentColors()
   const settings = useAppStore((state) => state.settings)
 
   useEffect(() => {

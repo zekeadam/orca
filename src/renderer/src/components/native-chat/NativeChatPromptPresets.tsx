@@ -135,7 +135,7 @@ export function NativeChatPromptPresets({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Z Settings"
+                aria-label={translate('settings.z.title', 'Z Settings')}
                 onClick={() => {
                   restoreFocus.current = false
                   setOpenedOwner(null)
@@ -150,7 +150,7 @@ export function NativeChatPromptPresets({
                 <Settings />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Z Settings</TooltipContent>
+            <TooltipContent>{translate('settings.z.title', 'Z Settings')}</TooltipContent>
           </Tooltip>
         </div>
         <Command

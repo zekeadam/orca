@@ -1,4 +1,5 @@
 import { normalizeNativeChatAppearanceSettings } from '../../../shared/native-chat-appearance-settings'
+import { normalizeAppearanceColors } from '../../../shared/appearance-colors'
 import { normalizeNativeChatPromptPresets } from '../../../shared/native-chat-prompt-presets'
 import { getDefaultVoiceSettings } from '../../../shared/constants'
 import { normalizePRBotAuthorOverrides } from '../../../shared/pr-bot-author-overrides'
@@ -68,6 +69,7 @@ export function normalizeLoadedGlobalSettings(
     // old default indistinguishable from a real opt-in. Preserve stored `true`; only
     // the default changed.
     ...stripRetiredGlobalSettings(parsed.settings),
+    ...normalizeAppearanceColors(parsed.settings),
     // Why: Chat UI on now opens new tabs in chat; keep users whose new tabs opened in the terminal there.
     ...(savedChatUiWithTerminalDefaultView(parsed.settings)
       ? { experimentalNativeChat: false }

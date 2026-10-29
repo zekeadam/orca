@@ -319,7 +319,7 @@ describe('reader navigation', () => {
     })
   })
 
-  it('keeps following when an earlier turn expands under a pending tail pin', () => {
+  it('keeps following when earlier tool activity expands under a pending tail pin', () => {
     const messages = [
       userMessage(0, 'Earlier turn'),
       ...Array.from({ length: 8 }, (_, i) => toolMessage(i + 1)),
@@ -345,15 +345,25 @@ describe('reader navigation', () => {
     )
     paint(container)
     const scroller = scrollRoot(container)
-    const window = container.querySelector<HTMLElement>('[data-native-chat-window]')
-    const beforeSlots = window?.querySelectorAll('[data-index]').length ?? 0
+    const activity = screen.getByRole('button', { name: 'Ran 8 commands' })
+    const activityRow = activity.closest<HTMLElement>('[data-index]')
+    if (!activityRow) {
+      throw new Error('The earlier activity has no mounted row')
+    }
+    expect(activity).toHaveAttribute('aria-expanded', 'false')
+    const beforeHeight = activityRow.offsetHeight
     // A pin created outside the painted frames is still waiting to reconcile by numeric index.
     layout.belowTranscriptPx += 20
     deliverResizes()
     expect(scroller.scrollTop).toBeGreaterThan(0)
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle turn details' }))
-    // Anti-vacuous: the expansion inserted rows before the tail the pin named.
-    expect(window?.querySelectorAll('[data-index]').length ?? 0).toBeGreaterThan(beforeSlots)
+    fireEvent.click(activity)
+    expect(activity).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getAllByRole('button', { name: 'shell Ran pwd' })).toHaveLength(8)
+    // The opened members grow their existing slot before the pinned tail.
+    layout.measuredRowHeights = layout.measuredRowHeights.map((height, index) =>
+      index === Number(activityRow.dataset.index) ? height + ROW_PX * 8 : height
+    )
+    expect(activityRow.offsetHeight).toBeGreaterThan(beforeHeight)
     paint(container)
     act(() => vi.advanceTimersByTime(160))
     paint(container)

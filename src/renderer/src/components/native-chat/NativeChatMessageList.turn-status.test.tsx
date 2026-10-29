@@ -135,7 +135,7 @@ afterEach(cleanup)
     }
   }
 
-  describe('NativeChatMessageList folded turn headers', () => {
+  describe('NativeChatMessageList settled turn headers', () => {
     // A crash-cut turn reads like a finished one; the chat's notice row is what says it stopped.
     it('says a crash-cut turn worked like a finished one and a stopped turn was interrupted', () => {
       render(
@@ -148,17 +148,17 @@ afterEach(cleanup)
         />
       )
 
-      const headers = screen
-        .getAllByRole('button', { name: 'Toggle turn details' })
-        .map((button) => [button.textContent, button.getAttribute('aria-expanded')])
-      expect(headers).toEqual([
-        ['Worked for 12s', 'false'],
-        ['Worked for 12s', 'false'],
-        ['Interrupted after 12s', 'false']
-      ])
-      // The turn's detail stays inside the fold.
-      expect(screen.queryByText('narration user-crashed')).toBeNull()
+      const headers = Array.from(document.querySelectorAll('[data-native-chat-turn-status]')).map(
+        (status) => status.textContent
+      )
+      expect(headers).toEqual(['Worked for 12s', 'Worked for 12s', 'Interrupted after 12s'])
+      expect(screen.getByText('narration user-crashed')).toBeInTheDocument()
       expect(screen.getByText('answer user-crashed')).toBeInTheDocument()
+      const activities = screen.getAllByRole('button', { name: 'pnpm test' })
+      expect(activities).toHaveLength(3)
+      for (const activity of activities) {
+        expect(activity).toHaveAttribute('aria-expanded', 'false')
+      }
     })
   })
 }

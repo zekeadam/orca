@@ -802,12 +802,9 @@ describe('NativeChatToolRun', () => {
       expect(runHeader(container)).toHaveAccessibleName('Result')
       expect(runHeader(container)).not.toHaveTextContent(/tool calls?/)
 
-      // Only the trailing check and the chevron; a wrench here would claim a
-      // tool category for a run holding no tool call.
-      expect(leadingGlyphs(container)).toEqual([
-        'lucide-check',
-        ...blocks.map(() => 'lucide-chevron-right')
-      ])
+      // Bare results establish neither a tool category nor a successful call.
+      expect(leadingGlyphs(container)).toEqual([null, ...blocks.map(() => 'lucide-chevron-right')])
+      expect(runHeader(container).querySelector('.lucide-check')).toBeNull()
     })
 
     it('holds the run glyph across live and settled', () => {

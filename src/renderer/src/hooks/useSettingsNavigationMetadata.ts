@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { translate } from '@/i18n/i18n'
+import { translateSearchKeyword } from '@/components/settings/settings-search-keywords'
 import { Sparkles } from 'lucide-react'
 import { getSpellcheckLanguagesSearchEntry } from '@/components/settings/spellcheck-languages-search'
 import { getCustomShortcutsSearchEntries } from '@/components/settings/shortcuts-search'
@@ -105,7 +106,7 @@ export function buildSettingsNavigationMetadata({
   return [
     {
       id: 'z-settings',
-      title: 'Z Settings',
+      title: translate('settings.z.title', 'Z Settings'),
       description: translate(
         'settings.z.description',
         'Personal customizations and prompt presets.'
@@ -119,7 +120,13 @@ export function buildSettingsNavigationMetadata({
             'settings.z.presets.description',
             'Up to nine prompts for the active chat. Alt+E opens the picker.'
           ),
-          keywords: ['Alt+E', 'prompt', 'presets', 'custom', 'Z Settings'],
+          keywords: [
+            ...translateSearchKeyword('settings.z.presets.keywords.shortcut', 'Alt+E'),
+            ...translateSearchKeyword('settings.z.presets.keywords.prompt', 'prompt'),
+            ...translateSearchKeyword('settings.z.presets.keywords.presets', 'presets'),
+            ...translateSearchKeyword('settings.z.presets.keywords.custom', 'custom'),
+            ...translateSearchKeyword('settings.z.title', 'Z Settings')
+          ],
           targetSectionId: 'z-prompt-presets'
         },
         getSpellcheckLanguagesSearchEntry(),

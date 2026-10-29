@@ -131,7 +131,7 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
               <ActiveSettingsSectionProvider value={model.activeSectionId}>
                 <SettingsSection
                   id="z-settings"
-                  title="Z Settings"
+                  title={translate('settings.z.title', 'Z Settings')}
                   description={translate(
                     'settings.z.description',
                     'Personal customizations and prompt presets.'
