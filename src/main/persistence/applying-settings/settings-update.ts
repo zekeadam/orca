@@ -1,4 +1,5 @@
 import { normalizeNativeChatAppearanceSettings } from '../../../shared/native-chat-appearance-settings'
+import { normalizeNativeChatPromptPresets } from '../../../shared/native-chat-prompt-presets'
 import type { GlobalSettings } from '../../../shared/global-settings-types'
 import { normalizeDisabledTuiAgents } from '../../../shared/tui-agent-selection'
 import { normalizeNativeChatProviderChoices } from '../../../shared/native-chat-providers'
@@ -49,9 +50,7 @@ import {
 export type SettingsMutationOperations = {
   state: PersistedState
   bumpLocalWorktreeScanGeneration: (repoId: string) => void
-  removeRetainedBlob: (
-    slot: Parameters<ProtectedSecretPersistence['removeRetainedBlob']>[0]
-  ) => void
+  removeRetainedBlob: ProtectedSecretPersistence['removeRetainedBlob']
   scheduleSave: () => void
   notifySettingsChanged: (updates: Partial<GlobalSettings>, originWebContentsId?: number) => void
 }
@@ -62,6 +61,11 @@ export function updateSettings(
   options: { notifyListeners?: boolean; originWebContentsId?: number } = {}
 ): GlobalSettings {
   const sanitizedUpdates = stripRetiredGlobalSettings(normalizeSpellcheckLanguagesUpdate(updates))
+  if ('nativeChatPromptPresets' in updates) {
+    sanitizedUpdates.nativeChatPromptPresets = normalizeNativeChatPromptPresets(
+      updates.nativeChatPromptPresets
+    )
+  }
   const linkBehavior = updates.terminalLinkClickBehavior
   if (linkBehavior === 'actions' || linkBehavior === 'open' || linkBehavior === 'none') {
     // Loaded defaults are ambiguous; synchronize the legacy switch only on an explicit write.

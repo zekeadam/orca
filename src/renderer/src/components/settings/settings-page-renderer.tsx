@@ -1,4 +1,5 @@
-import { ActiveSettingsSectionProvider } from './SettingsSection'
+import { ActiveSettingsSectionProvider, SettingsSection } from './SettingsSection'
+import { ZSettingsPane } from './ZSettingsPane'
 import { SettingsSidebar } from './SettingsSidebar'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
@@ -128,6 +129,17 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
               </div>
             ) : (
               <ActiveSettingsSectionProvider value={model.activeSectionId}>
+                <SettingsSection
+                  id="z-settings"
+                  title="Z Settings"
+                  description={translate(
+                    'settings.z.description',
+                    'Personal customizations and prompt presets.'
+                  )}
+                  searchEntries={navigation.getSectionSearchEntries('z-settings')}
+                >
+                  {view.isSectionMounted('z-settings') ? <ZSettingsPane /> : null}
+                </SettingsSection>
                 {renderAgentsSettingsSection(context)}
                 {renderAccountsSettingsSection(context)}
                 {renderOrchestrationSettingsSection(context)}

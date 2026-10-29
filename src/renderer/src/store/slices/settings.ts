@@ -1,4 +1,5 @@
 import { normalizeNativeChatAppearanceSettings } from '../../../../shared/native-chat-appearance-settings'
+import { normalizeNativeChatPromptPresets } from '../../../../shared/native-chat-prompt-presets'
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
@@ -67,6 +68,11 @@ function normalizeSettingsUpdates(
   const { terminalScrollbackBytes: _legacyScrollbackBytes, ...sanitizedUpdates } =
     updates as LegacyTerminalScrollbackSettingsUpdate
   void _legacyScrollbackBytes
+  if ('nativeChatPromptPresets' in updates) {
+    sanitizedUpdates.nativeChatPromptPresets = normalizeNativeChatPromptPresets(
+      updates.nativeChatPromptPresets
+    )
+  }
   if ('terminalQuickCommands' in updates) {
     sanitizedUpdates.terminalQuickCommands = normalizeTerminalQuickCommands(
       updates.terminalQuickCommands

@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { getGeneralEditorSearchEntries, getGeneralPaneSearchEntries } from './general-search'
 import { matchesSettingsSearch } from './settings-search'
+import { getSpellcheckLanguagesSearchEntry } from './spellcheck-languages-search'
 
 it.each(['spellcheck', 'languages', 'Hungarian', 'magyar', 'English', 'dictionary'])(
-  'finds Spellcheck Languages through both search gates for %s',
+  'preserves Spellcheck Languages search terms after moving to Z Settings: %s',
   (query) => {
-    const entries = getGeneralEditorSearchEntries()
-    const entry = entries.find((item) => item.title === 'Spellcheck Languages')
-    expect(entry).toBeDefined()
-    expect(matchesSettingsSearch(query, entry!)).toBe(true)
-    expect(matchesSettingsSearch(query, getGeneralPaneSearchEntries())).toBe(true)
+    expect(matchesSettingsSearch(query, getSpellcheckLanguagesSearchEntry())).toBe(true)
+    expect(
+      getGeneralEditorSearchEntries().some(
+        (entry) => entry.title === getSpellcheckLanguagesSearchEntry().title
+      )
+    ).toBe(false)
   }
 )
 

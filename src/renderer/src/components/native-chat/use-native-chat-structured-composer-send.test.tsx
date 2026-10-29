@@ -6,6 +6,10 @@ import type { AgentType } from '../../../../shared/agent-status-types'
 import type { NativeChatStructuredComposerTransport } from './native-chat-composer-types'
 import type { NativeChatComposerImageAttachment } from './NativeChatComposerField'
 import { useNativeChatStructuredComposerSend } from './use-native-chat-structured-composer-send'
+import {
+  readNativeChatComposerDraft,
+  updateNativeChatComposerDraft
+} from './native-chat-composer-draft-store'
 
 vi.mock('@/lib/native-chat-telemetry', () => ({ emitNativeChatMessageSent: vi.fn() }))
 vi.mock('@/lib/worker-terminal-takeover-report', () => ({
@@ -98,6 +102,25 @@ describe('attachment guard follows what the host claims', () => {
     expect(structuredTransport.send).not.toHaveBeenCalled()
   })
 })
+
+it.each([true, 'queued'] as const)(
+  'preserves draft text and attachments after a preset is accepted (%s)',
+  async (admission) => {
+    const { send, structuredTransport } = harness('claude')
+    updateNativeChatComposerDraft(
+      'tab-1:pane',
+      { text: 'Unfinished draft', images: [ATTACHMENT] },
+      'immediate'
+    )
+    vi.mocked(structuredTransport.send).mockReturnValue(admission)
+    await send('Preset text', [], true)
+    expect(structuredTransport.send).toHaveBeenCalledExactlyOnceWith('Preset text', [])
+    expect(readNativeChatComposerDraft('tab-1:pane')).toMatchObject({
+      text: 'Unfinished draft',
+      images: [ATTACHMENT]
+    })
+  }
+)
 
 describe('an attachment still uploading', () => {
   it('holds a picked command, as Send is held, rather than send the chip without its path', async () => {

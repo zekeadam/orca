@@ -1,4 +1,5 @@
 import type { GlobalSettingsBase } from './global-settings-base'
+import type { NativeChatPromptPreset } from './native-chat-prompt-presets'
 import type { ExecutionHostId } from './execution-host'
 import type { OrcaWorkspaceLayout } from './orca-workspace-layout'
 import type { GitHubProjectSettings } from './github/project-types'
@@ -49,6 +50,7 @@ export type { WorktreeVisibilityDefaults } from './repo-types'
 export type MiniMaxEndpoint = 'overseas' | 'cn'
 
 export type GlobalSettings = GlobalSettingsBase & {
+  nativeChatPromptPresets?: NativeChatPromptPreset[]
   workspaceDir: string
   /** Host-owned defaults used when a repository has no explicit visibility override. */
   worktreeVisibilityDefaults?: WorktreeVisibilityDefaults

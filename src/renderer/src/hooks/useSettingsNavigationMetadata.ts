@@ -1,4 +1,8 @@
 import { useMemo } from 'react'
+import { translate } from '@/i18n/i18n'
+import { Sparkles } from 'lucide-react'
+import { getSpellcheckLanguagesSearchEntry } from '@/components/settings/spellcheck-languages-search'
+import { getCustomShortcutsSearchEntries } from '@/components/settings/shortcuts-search'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 // Why: this registry mirrors the Settings sidebar in one neutral module so
@@ -99,6 +103,29 @@ export function buildSettingsNavigationMetadata({
   // sidebar and the Cmd+J palette both read top-to-bottom in the same grouped
   // order — keep each new entry beside its group's siblings.
   return [
+    {
+      id: 'z-settings',
+      title: 'Z Settings',
+      description: translate(
+        'settings.z.description',
+        'Personal customizations and prompt presets.'
+      ),
+      icon: Sparkles,
+      group: 'z-settings',
+      searchEntries: [
+        {
+          title: translate('settings.z.presets.title', 'Prompt presets'),
+          description: translate(
+            'settings.z.presets.description',
+            'Up to nine prompts for the active chat. Alt+E opens the picker.'
+          ),
+          keywords: ['Alt+E', 'prompt', 'presets', 'custom', 'Z Settings'],
+          targetSectionId: 'z-prompt-presets'
+        },
+        getSpellcheckLanguagesSearchEntry(),
+        ...getCustomShortcutsSearchEntries()
+      ]
+    },
     ...buildCapabilitySettingsSections(options),
     ...buildSetupSettingsSections(options),
     ...buildWorkflowSettingsSections(options, terminalPaneSearchEntries),

@@ -13,6 +13,7 @@ export type SettingsNavInstallStatus =
   | 'checking'
 
 const SETTINGS_NAV_TARGETS = [
+  'z-settings',
   'general',
   'integrations',
   'accounts',

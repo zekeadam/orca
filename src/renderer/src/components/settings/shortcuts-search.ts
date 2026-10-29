@@ -59,10 +59,17 @@ export function getShortcutsPaneSearchEntries(options?: {
     ...getShortcutDefinitionSearchEntries()
       .filter(
         ({ actionId }) =>
+          actionId !== 'app.quit' &&
           (includeManagedBrowser || actionId !== 'tab.newBrowser') &&
           (includeMobileEmulator || actionId !== 'tab.newSimulator')
       )
       .map(({ searchEntry }) => searchEntry),
     getTerminalShortcutPolicySearchEntry()
   ]
+}
+
+export function getCustomShortcutsSearchEntries(): SettingsSearchEntry[] {
+  return getShortcutDefinitionSearchEntries()
+    .filter(({ actionId }) => actionId === 'app.quit')
+    .map(({ searchEntry }) => ({ title: searchEntry.title, keywords: searchEntry.keywords }))
 }
