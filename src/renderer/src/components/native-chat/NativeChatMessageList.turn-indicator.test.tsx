@@ -746,7 +746,7 @@ describe('NativeChatMessageList turn indicator', () => {
     }
   )
 
-  it("uses the completed caret to expand that turn's tool details", () => {
+  it('keeps completed tool details in their own disclosure below the duration', () => {
     const startedAt = Date.now() - 3000
     render(
       <NativeChatMessageList
@@ -784,15 +784,13 @@ describe('NativeChatMessageList turn indicator', () => {
       />
     )
 
-    const status = screen.getByRole('button', { name: 'Toggle turn details' })
-    expect(status).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByRole('button', { name: /pwd/ })).toBeNull()
-    fireEvent.click(status)
-    expect(status).toHaveAttribute('aria-expanded', 'true')
-    // Opening the turn status reveals the turn, but does not open its nested
-    // tool-run disclosure. The command remains a separate reader action.
-    const tools = screen.getAllByRole('button', { name: /pwd/ })
-    expect(tools).toHaveLength(1)
-    expect(tools[0]).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText('Worked for 3s')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Toggle turn details' })).toBeNull()
+    const activity = screen.getByRole('button', { name: 'pwd' })
+    expect(activity).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('/repo')).toBeNull()
+    fireEvent.click(activity)
+    expect(activity).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getAllByRole('button', { name: /pwd/ })).toHaveLength(2)
   })
 })

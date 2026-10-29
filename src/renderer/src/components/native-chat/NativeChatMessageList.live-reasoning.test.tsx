@@ -149,16 +149,17 @@ import type { NativeChatLiveSession } from './use-native-chat-live-session'
       expect(screen.getByText('Thinking').closest('[aria-live]')).not.toBeNull()
     })
 
-    it('lands the finished row open when the reader opened it live, while the turn works on', () => {
+    it('remembers live reasoning was open when the reader opens its landed activity', () => {
       const { rerender } = render(list([reasoning('r-1', 'Weighing two approaches', 'running')]))
       fireEvent.click(screen.getByRole('button', { name: 'Thinking' }))
       rerender(list([reasoning('r-1', 'Weighing two approaches', 'completed')]))
-      // The line no longer discloses anything; the row does, still open.
+      // Completed reasoning moves under the activity disclosure with its own open state intact.
       expect(screen.queryByRole('button', { name: /Thinking|Working/ })).toBeNull()
-      expect(screen.getByRole('button', { name: 'Reasoning: Thought for 12s' })).toHaveAttribute(
-        'aria-expanded',
-        'true'
-      )
+      const activity = screen.getByRole('button', { name: 'Technical activity' })
+      expect(activity).toHaveAttribute('aria-expanded', 'false')
+      fireEvent.click(activity)
+      const thought = screen.getByRole('button', { name: 'Reasoning: Thought for 12s' })
+      expect(thought).toHaveAttribute('aria-expanded', 'true')
       expect(screen.getByText('Weighing two approaches')).toBeInTheDocument()
     })
 
@@ -174,6 +175,7 @@ import type { NativeChatLiveSession } from './use-native-chat-live-session'
       expect(live).toHaveClass('text-chat-foreground-faint', 'pl-5.5', 'max-h-80')
       const liveClasses = live?.getAttribute('class')
       rerender(list([reasoning('r-1', 'Weighing two approaches', 'completed')]))
+      fireEvent.click(screen.getByRole('button', { name: 'Technical activity' }))
       expect(body()?.getAttribute('class')).toBe(liveClasses)
     })
 
@@ -199,17 +201,16 @@ import type { NativeChatLiveSession } from './use-native-chat-live-session'
       expect(screen.queryByRole('button', { name: 'Thinking' })).toBeNull()
     })
 
-    it('draws the open row when a waiting prompt replaces the line', () => {
+    it('keeps reasoning available under activity when a waiting prompt replaces the line', () => {
       render(
         list([reasoning('r-1', 'Weighing two approaches', 'running')], {
           awaitingInput: 'unshown'
         })
       )
       expect(screen.queryByText('Thinking')).toBeNull()
-      expect(screen.getByRole('button', { name: 'Reasoning' })).toHaveAttribute(
-        'aria-expanded',
-        'false'
-      )
+      fireEvent.click(screen.getByRole('button', { name: 'Technical activity' }))
+      const thought = screen.getByRole('button', { name: 'Reasoning' })
+      expect(thought).toHaveAttribute('aria-expanded', 'false')
     })
 
     // The open block can sit on a slot kept for its turn's bar or diff rollup; only the slot stays.

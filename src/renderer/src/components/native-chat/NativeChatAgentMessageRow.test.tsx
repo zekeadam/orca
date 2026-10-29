@@ -56,7 +56,7 @@ describe("another agent's message in the transcript", () => {
   it('reads as a left-aligned message from its sender, not as the person’s bubble', () => {
     const { container } = renderUserMessage(from([{ address: CODER.address, name: 'Coder' }]))
     expect(screen.getByText('Message from')).toBeInTheDocument()
-    const row = container.firstElementChild
+    const row = container.querySelector('[data-native-chat-message-id="message"]')
     expect(row).toHaveClass('items-start')
     expect(row).not.toHaveClass('items-end')
     expect(container.querySelector('.bg-chat-user-surface')).toBeNull()
@@ -118,7 +118,9 @@ describe("another agent's message in the transcript", () => {
   it("leaves the person's own message as their right-aligned bubble", () => {
     const { container } = renderUserMessage()
     expect(screen.queryByText('Message from')).not.toBeInTheDocument()
-    expect(container.firstElementChild).toHaveClass('items-end')
+    expect(container.querySelector('[data-native-chat-message-id="message"]')).toHaveClass(
+      'items-end'
+    )
     expect(container.querySelector('.bg-chat-user-surface')).not.toBeNull()
   })
 })
