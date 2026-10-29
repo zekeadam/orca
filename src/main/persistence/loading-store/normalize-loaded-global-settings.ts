@@ -42,6 +42,7 @@ export function normalizeLoadedGlobalSettings(
     migratedFloatingTerminalTrustedCwds
   } = terminal
   const {
+    migratedAppFontFamily,
     migratedExperimentalActivity,
     migratedAutoRenameBranchFromWork,
     migratedTerminalCursorStyle,
@@ -70,6 +71,8 @@ export function normalizeLoadedGlobalSettings(
     // the default changed.
     ...stripRetiredGlobalSettings(parsed.settings),
     ...normalizeAppearanceColors(parsed.settings),
+    appFontFamily: migratedAppFontFamily,
+    appFontFamilyZDesignMigrated: true,
     // Why: Chat UI on now opens new tabs in chat; keep users whose new tabs opened in the terminal there.
     ...(savedChatUiWithTerminalDefaultView(parsed.settings)
       ? { experimentalNativeChat: false }

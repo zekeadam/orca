@@ -62,6 +62,9 @@ export function updateSettings(
 ): GlobalSettings {
   const sanitizedUpdates = stripRetiredGlobalSettings(normalizeSpellcheckLanguagesUpdate(updates))
   Object.assign(sanitizedUpdates, normalizeAppearanceColors(updates))
+  if ('appFontFamily' in updates || 'appFontFamilyZDesignMigrated' in updates) {
+    sanitizedUpdates.appFontFamilyZDesignMigrated = true
+  }
   const linkBehavior = updates.terminalLinkClickBehavior
   if (linkBehavior === 'actions' || linkBehavior === 'open' || linkBehavior === 'none') {
     // Loaded defaults are ambiguous; synchronize the legacy switch only on an explicit write.

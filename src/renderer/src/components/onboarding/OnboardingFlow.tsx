@@ -196,7 +196,7 @@ export default function OnboardingFlow({
   return (
     <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/50 p-4 text-foreground backdrop-blur-[2px]"
+        className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-overlay p-4 text-foreground"
         data-onboarding-overlay
         onPointerDown={(event) => {
           if (!shouldRequestOnboardingSkipConfirmation(event)) {
@@ -220,7 +220,7 @@ export default function OnboardingFlow({
           aria-modal="true"
           data-onboarding-modal
           className={cn(
-            'relative flex h-[calc(100vh-2rem)] max-h-[960px] min-h-0 w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-[0_10px_24px_rgba(0,0,0,0.18)] transition-[max-width] duration-[760ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+            'relative flex h-[calc(100vh-2rem)] max-h-[960px] min-h-0 w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-[max-width] duration-[760ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
             'max-w-[1100px]'
           )}
         >

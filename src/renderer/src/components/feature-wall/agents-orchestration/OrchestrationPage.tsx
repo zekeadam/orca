@@ -321,8 +321,7 @@ export function OrchestrationPage(props: {
           }}
         >
           <span
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-1.5 text-muted-foreground"
-            style={{ height: 18, fontSize: 10, fontWeight: 500 }}
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-card px-1.5 text-xs font-medium text-muted-foreground"
             aria-label={translate(
               'auto.components.feature.wall.agents.orchestration.OrchestrationPage.862605d066',
               '2 child workspaces'

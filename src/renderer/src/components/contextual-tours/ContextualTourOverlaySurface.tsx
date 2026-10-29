@@ -91,7 +91,7 @@ if (import.meta !== undefined && import.meta.hot) {
 }
 
 const PANEL_BASE_CLASSES =
-  'orca-contextual-tour-panel rounded-lg border border-border text-popover-foreground backdrop-blur-[2px]'
+  'orca-contextual-tour-panel rounded-lg border border-border text-popover-foreground'
 
 const PANEL_ANIMATION_CLASSES = 'animate-in fade-in-0 zoom-in-95 duration-200 ease-out'
 

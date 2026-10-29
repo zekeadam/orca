@@ -15,8 +15,6 @@ import {
 import type { WorkspacePort } from '../../../../shared/workspace-ports'
 import { translate } from '@/i18n/i18n'
 
-const LOCAL_PORT_MENU_CONTENT_CLASS =
-  '!rounded-md !border-border/60 !bg-popover !text-popover-foreground !shadow-[0_10px_24px_rgba(0,0,0,0.18)] !backdrop-blur-none'
 const LOCAL_PORT_MENU_ITEM_CLASS =
   'rounded-md focus:bg-accent focus:text-accent-foreground dark:focus:bg-accent'
 const LOCAL_PORT_MENU_LABEL_CLASS = 'px-2 py-1 text-[11px] font-semibold text-muted-foreground'
@@ -197,7 +195,7 @@ export function LocalPortRow({
           </div>
         </TooltipProvider>
       </div>
-      <ContextMenuContent className={LOCAL_PORT_MENU_CONTENT_CLASS}>
+      <ContextMenuContent>
         <ContextMenuLabel
           className={LOCAL_PORT_MENU_LABEL_CLASS}
         >{`:${port.port}`}</ContextMenuLabel>

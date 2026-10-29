@@ -101,7 +101,7 @@ export function CheckRunDetails({
         // visible while scrolling through annotations and job output.
         <div
           className={cn(
-            'sticky top-0 z-10 -ml-3 flex min-w-0 items-center gap-2 border-b border-border/60 py-1 pl-3 backdrop-blur-sm',
+            'sticky top-0 z-10 -ml-3 flex min-w-0 items-center gap-2 border-b border-border/60 py-1 pl-3 ',
             getCheckDetailsStickySurfaceClass(detailsStickySurface)
           )}
         >

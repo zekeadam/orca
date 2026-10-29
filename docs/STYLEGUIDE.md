@@ -1,10 +1,10 @@
 # Orca UI Style Guide
 
-This is the **UI/visual design** doc for Orca — color tokens, typography, component selection, and UX rules. It is _not_ an architecture doc; for system-level design see code and inline comments. Token values live in `src/renderer/src/assets/main.css` (canonical); this file documents the _roles and rules_ for using them.
+This is the **UI/visual design** doc for Orca — color tokens, typography, component selection, and UX rules. It is _not_ an architecture doc; for system-level design see code and inline comments. Shared design values come from the vendored `src/renderer/src/assets/z-design.css`; `main.css` is the canonical Orca semantic adapter. This file documents their roles and rules. See [the integration record](#shared-integration) for the pinned source and update procedure.
 
 ## Overview
 
-Orca is an Electron desktop app for orchestrating coding agents across git worktrees. The visual identity is **monochrome and quiet** — neutral grays carry the chrome, color is reserved for state (selection ring, destructive, git decorations). The product spends most of its time hosting other people's tools (Monaco, xterm, Markdown previews), so Orca's own UI should recede and frame.
+Orca uses **z-design**: black matte surfaces, Consolas typography and semantic color. Green marks available actions, activity and completion; orange marks human attention; cherry marks errors and blocked work. Keep terminal output, editor syntax, user artwork and data-driven colors intact. Existing light mode is a contrast-preserving Orca adaptation; saved font, color and terminal-matching choices remain authoritative.
 
 When in doubt:
 
@@ -14,12 +14,27 @@ When in doubt:
 
 ## Source of truth
 
-| Concern                                       | Canonical location                                    |
-| --------------------------------------------- | ----------------------------------------------------- |
-| Color tokens                                  | `src/renderer/src/assets/main.css` (`:root`, `.dark`) |
-| Tailwind theme bindings                       | Same file, `@theme inline { … }` block                |
-| Component primitives                          | `src/renderer/src/components/ui/` (shadcn-style)      |
-| App typography / scrollbars / titlebar chrome | Same `main.css`                                       |
+| Concern                                       | Canonical location                                             |
+| --------------------------------------------- | -------------------------------------------------------------- |
+| Shared design tokens                          | `src/renderer/src/assets/z-design.css` (generated, never edit) |
+| Orca semantic color adapter                   | `src/renderer/src/assets/main.css` (`:root`, `.dark`)          |
+| Tailwind theme bindings                       | Same file, `@theme inline { … }` block                         |
+| Component primitives                          | `src/renderer/src/components/ui/` (shadcn-style)               |
+| App typography / scrollbars / titlebar chrome | Same `main.css`                                                |
+
+## Shared integration
+
+The shared source is [zekeadam/z-design](https://github.com/zekeadam/z-design), `main` at `44c823a62219d6db25a0867140f50e4dcb3a2b04`, verified against the remote on 2026-10-29 at approximately 22:03 Europe/Budapest. `assets/z-design-source.json` records the exact revision, time and SHA-256. `assets/z-design.css` is the unchanged generated `dist/z-design.css`; its local `.gitattributes` preserves its byte hash across platforms. Never edit or format the vendored CSS.
+
+`main.css` adapts the shared roles to the existing React/Radix primitives; there is no parallel component library or runtime dependency on a local checkout. Dark mode uses the shared palette, while light mode keeps a contrast-preserving Orca adaptation. Existing accent/tab-bar/tab/active-tab/status-bar settings remain authoritative, as do terminal matching and chat-local appearance settings. Native-chat status colors follow its own scheme even when it differs from the app; portaled menus keep their document scope. Host-owned plugin consent/provenance colors remain isolated from plugin themes. Terminal/editor syntax, git graph data colors, authored artwork and exported share-card artwork retain their own meaning.
+
+New profiles default to Consolas. The existing settings load/update path migrates the old shipped Geist default once and records `appFontFamilyZDesignMigrated`; other custom fonts stay unchanged. The old format cannot distinguish an explicit Geist choice from its shipped default, so both migrate once. Geist can be selected again afterward and survives reloads. Explicit terminal/code size choices remain selectable. Shared body/code defaults are 14px; metadata utilities have a 12px floor. The typed Tailwind `text-*` compatibility utility also floors arbitrary CSS lengths (including rem and responsive/hover variants) without rewriting existing component classes, changing text colors or overriding named chat size settings.
+
+Update procedure:
+
+1. Verify the shared remote/default branch and fetch it. Preserve unrelated checkout changes and select the verified source revision. For shared changes, edit `tokens.json` or `components/bundle.css` and run the source repository's `node scripts/build-css.mjs`. This integration's adapter and component composition are consumer-specific and need no shared-source writeback.
+2. Copy the generated stylesheet unchanged; update `z-design-source.json` with its revision, verification time and byte hash. Reconcile the semantic adapter and role recipes against the selected shared revision.
+3. Run the vendored contract/compile, native-chat appearance and font-persistence tests, node/web typechecks, renderer build and changed code-quality gate. The compile tests cover arbitrary-length ordering, text colors, responsive states, shadow tiers and preserved focus rings. Use hidden Electron/CDP rendering checks for visual/layout acceptance when the required Electron skill is available; builds and token tests alone do not prove rendered appearance, every OS or SSH latency behavior.
 
 Never hardcode a hex value in component code if a variable already covers it. If a new token is needed, add it to `main.css` (both `:root` and `.dark`), expose it in the `@theme inline` block, then use it.
 
@@ -89,15 +104,11 @@ This keeps light/dark parity automatic.
 
 ## Typography
 
-- **Family:** `Geist` is loaded as a single variable woff2 (weight range 100–900). Always reach for `Geist` for sans, never `Inter` or system sans.
-- **Mono:** `var(--font-mono)` — used for paths, terminal-adjacent UI, code, and anywhere monospace conveys "this is literal."
-- **Body letter-spacing:** `0.01em` (set globally on `body`). Don't override per component.
-- **Sizes:** Tailwind's default scale. Common sizes in this repo:
-  - 11px (uppercase meta, sidebar headers, captions) — pair with `font-weight: 600` and `text-transform: uppercase` and `letter-spacing: 0.05em` for category labels.
-  - 12px (sub-text, paths, secondary content)
-  - 13px (sidebar items, dense list rows)
-  - 14px (default body, button text in `default` size)
-- **Named small steps:** `text-2xs` (11px) and `text-3xs` (10px) are theme steps in `main.css`. Use them instead of `text-[11px]` / `text-[10px]`.
+- **Family:** Consolas, then SFMono-Regular, Liberation Mono and generic monospace. The shared body and code stacks intentionally match. Saved custom app and terminal fonts still win; never replace authored text or user preferences.
+- **Body:** 14px with 1.5 line height; code defaults to 14px with 1.65 line height. Metadata has a 12px floor. Change layout before reducing text on narrow screens.
+- **Hierarchy:** 32px heading, 28px status, 24px section, 20px window title, 16px emphasis, 14px body/label, 12px metadata. Use existing Tailwind steps or the shared role recipes.
+- **Labels:** sentence case and muted text; do not introduce uppercase micro-labels.
+- **Named small steps:** `text-xs`, `text-2xs` and `text-3xs` all have a 12px default. The latter two remain compatibility names for existing callers.
 
 ### Chat type scale
 
@@ -107,11 +118,11 @@ The native chat uses four steps and no others. Never write an arbitrary size (`t
 | ---------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
 | `text-sm`        | 14px    | Anything the user reads: message prose, tool and agent activity rows, card titles and bodies, the composer |
 | `text-xs`        | 12px    | Labels, timestamps, counters, secondary lines under a row                                                  |
-| `text-2xs`       | 11px    | Captions, attribution, uppercase category labels                                                           |
-| `text-3xs`       | 10px    | Badges and mono pills                                                                                      |
-| `text-chat-code` | 12px    | Code blocks, diffs, commands and tool output                                                               |
+| `text-2xs`       | 12px    | Captions and attribution (compatibility name)                                                              |
+| `text-3xs`       | 12px    | Badges and mono pills (compatibility name)                                                                 |
+| `text-chat-code` | 14px    | Code blocks, diffs, commands and tool output                                                               |
 
-The chat root (`.native-chat-appearance`) redefines these steps as ratios of the Text size setting, so every tier scales together; `text-chat-code` follows the Code text size setting. The chat root also ties the spacing unit to the text size (4px at the default 14px), so icons, gaps, padding and row heights grow with the text. Use spacing-scale utilities (`size-3.5`, `min-h-6.5`, `pl-3.25`), not pixel lengths (`min-h-[26px]`), or the element stays fixed while the rest scales. Size an element with one of these utilities only: a CSS rule that sets `font-size` outside a layer silently overrides them.
+The chat root (`.native-chat-appearance`) scales metadata with the Text size setting while keeping its 12px floor; `text-chat-code` follows the Code text size setting. The chat root also ties the spacing unit to the text size (4px at the default 14px), so icons, gaps, padding and row heights grow with the text. Use spacing-scale utilities (`size-3.5`, `min-h-6.5`, `pl-3.25`), not pixel lengths (`min-h-[26px]`), or the element stays fixed while the rest scales. Size an element with one of these utilities only: a CSS rule that sets `font-size` outside a layer silently overrides them.
 
 ### Chat text colour, hover and focus
 
@@ -123,17 +134,11 @@ The chat root (`.native-chat-appearance`) redefines these steps as ratios of the
 
 ## Radius
 
-`--radius: 0.625rem` (10px) is the base; the rest are computed (`--radius-sm` = 0.6×, `--radius-md` = 0.8×, `--radius-lg` = 1×, `--radius-xl` = 1.4×, etc.). Buttons and inputs use `rounded-md`; the `Card` primitive uses `rounded-xl`; badges use `rounded-full`. Match the existing primitive's radius rather than introducing a new one.
+Use role radii from z-design: small details 4px (`rounded-sm`), controls 8px (`rounded-md`), summary cards and dialogs 16px (`rounded-lg`/`rounded-xl`), windows 18px (`rounded-2xl`), feeds and reply fields square (`rounded-none`), badges pill-shaped (`rounded-full`). Do not derive new radii from a single multiplier.
 
-## Elevation & shadows
+## Elevation & materials
 
-Orca uses shadows sparingly. Three levels in practice:
-
-1. **Inset hairline** — `border` + `border` token. The default. Almost everything sits at this level.
-2. **Subtle lift** — `shadow-xs` + a single-token border. Outline buttons, embedded cards.
-3. **Floating** — `shadow-floating` (`0 10px 24px rgba(0, 0, 0, 0.18)`). Popovers, popups that escape the editor surface. Reserved.
-
-Don't add a fourth level. If something needs more emphasis than "floating," you're probably reaching for the focus `ring` instead.
+All chrome is matte and opaque. Canvas and feeds use `background`; summary cards use `card`; controls, menus and headers use `secondary` or `popover`. Separate surfaces with `border`, never glass or backdrop blur. Shadows belong to the window frame only (`--ui-shadow`); `shadow-floating` is a compatibility alias for no shadow. Dialog scrims use `bg-overlay` and retain the workspace context behind them.
 
 ## Components
 
@@ -156,7 +161,7 @@ Variants in priority order:
 | `link`        | Inline text actions inside paragraphs.                             |
 | `destructive` | Delete, discard, irreversible. Never for Cancel.                   |
 
-Sizes: `default` (36px), `sm` (32px), `xs` (24px), `lg` (40px), plus `icon`, `icon-xs`, `icon-sm`, `icon-lg`. Match the size to the surrounding row height — don't drop a `default` button into a 28px toolbar.
+Sizes: `default` (40px), `sm` (32px), `xs` (24px compact icon/chip compatibility), `lg` (40px), plus `icon`, `icon-xs`, `icon-sm`, `icon-lg`. Match the size to the surrounding row height — don't drop a `default` button into a 28px toolbar.
 
 ### Other primitives in this repo
 

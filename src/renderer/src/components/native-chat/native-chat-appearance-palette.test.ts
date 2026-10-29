@@ -9,11 +9,15 @@ import { nativeChatAppearanceStyle } from './native-chat-appearance-style'
 
 const css = readFileSync(resolve('src/renderer/src/assets/main.css'), 'utf8')
 // Happy DOM only needs the ordinary rules; Tailwind directives are compiled separately below.
-const paletteCss = [
-  ...css.matchAll(/(?:^|\n)(:root[^{}]*|\.dark[^{}]*|\.native-chat-appearance[^{}]*)\{([^{}]*)\}/g)
-]
-  .map((match) => match[0])
-  .join('\n')
+const paletteCss =
+  readFileSync(resolve('src/renderer/src/assets/z-design.css'), 'utf8') +
+  [
+    ...css.matchAll(
+      /(?:^|\n)(:root[^{}]*|\.dark[^{}]*|\.native-chat-appearance[^{}]*)\{([^{}]*)\}/g
+    )
+  ]
+    .map((match) => match[0])
+    .join('\n')
 
 afterEach(() => {
   document.head.innerHTML = ''
@@ -97,7 +101,7 @@ describe('matching chat surfaces with opposite app schemes', () => {
     )
     // The unread marker is mixed toward the chat's own foreground, not the app's.
     expect(matched.getPropertyValue('--chat-unread')).toContain(
-      terminalScheme === 'light' ? '#0969da 70%, #000000' : '#4493f8 70%, #ffffff'
+      terminalScheme === 'light' ? '#0969da 70%, #000000' : '#00ff44 70%, #ffffff'
     )
     const codeForeground = matched.getPropertyValue('--chat-code-foreground')
     expect(codeForeground).toContain(`${terminalScheme === 'light' ? '#000000' : '#ffffff'} 85%`)

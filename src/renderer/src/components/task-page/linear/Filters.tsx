@@ -61,7 +61,7 @@ export function TaskPageLinearFilters({
   } = model
   return (
     <div
-      className="min-w-0 rounded-md rounded-b-none border border-border/50 bg-muted/50 px-3 pt-2 pb-0 shadow-sm"
+      className="min-w-0 rounded-md rounded-b-none border border-border/50 bg-muted/50 px-3 pt-2 pb-0 "
       data-contextual-tour-target="tasks-search-presets"
     >
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
@@ -75,7 +75,7 @@ export function TaskPageLinearFilters({
             const buttonClassName = cn(
               'rounded-md border px-2 py-1 text-xs transition',
               active
-                ? 'border-border/50 bg-foreground/90 text-background'
+                ? 'border-border/50 bg-foreground text-background'
                 : 'border-border/50 bg-transparent text-foreground hover:bg-muted/50'
             )
             if (mode.id === 'in-orca') {
@@ -158,7 +158,7 @@ export function TaskPageLinearFilters({
                     ? translate('auto.components.TaskPage.1361275ec3', 'New Linear project')
                     : translate('auto.components.TaskPage.3feb524d42', 'New Linear issue')
                 }
-                className="size-8 border-border/50 bg-transparent hover:bg-muted/50 backdrop-blur-md supports-[backdrop-filter]:bg-transparent"
+                className="size-8"
               >
                 <Plus className="size-4" />
               </Button>
@@ -183,7 +183,7 @@ export function TaskPageLinearFilters({
                       : linearCustomViewsLoading || linearCustomViewContentsLoading
                 }
                 aria-label={translate('auto.components.TaskPage.8964184a8b', 'Refresh Linear')}
-                className="size-8 border-border/50 bg-transparent hover:bg-muted/50 backdrop-blur-md supports-[backdrop-filter]:bg-transparent"
+                className="size-8"
               >
                 {(linearMode === 'issues' || linearMode === 'in-orca') && linearLoading ? (
                   <LoaderCircle className="size-4 animate-spin" />

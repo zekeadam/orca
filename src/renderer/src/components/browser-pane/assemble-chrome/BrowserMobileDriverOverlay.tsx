@@ -59,11 +59,11 @@ export function BrowserMobileDriverOverlay({ driver, onTakeBack }: Props): React
       aria-labelledby={OVERLAY_TITLE_ID}
       aria-live="assertive"
       className={cn(
-        'pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-background/80 p-6 backdrop-blur-sm',
+        'pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-overlay p-6 ',
         'mobile-browser-driver-banner'
       )}
     >
-      <div className="pointer-events-auto flex w-full max-w-[30rem] flex-col gap-3 rounded-lg border border-border bg-card p-6 pb-5 text-card-foreground shadow-xs">
+      <div className="pointer-events-auto flex w-full max-w-[30rem] flex-col gap-3 rounded-lg border border-border bg-card p-6 pb-5 text-card-foreground ">
         <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
           <span aria-hidden="true">●</span>
           <span>

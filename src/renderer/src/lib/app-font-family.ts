@@ -2,10 +2,9 @@ import { DEFAULT_APP_FONT_FAMILY } from '../../../shared/constants'
 
 const APP_FONT_FALLBACKS = [
   DEFAULT_APP_FONT_FAMILY,
-  '-apple-system',
-  'BlinkMacSystemFont',
-  'Segoe UI',
-  'sans-serif'
+  'SFMono-Regular',
+  'Liberation Mono',
+  'monospace'
 ] as const
 
 const CSS_FONT_KEYWORDS = new Set([

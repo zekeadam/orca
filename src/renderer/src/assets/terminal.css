@@ -137,7 +137,7 @@
 /* Three-dot ellipsis indicator */
 .pane-drag-handle::after {
   content: '···';
-  font-size: 10px;
+  font-size: var(--ui-font-size-meta);
   letter-spacing: 1px;
   line-height: 1;
   color: rgba(255, 255, 255, 0.45);
@@ -236,7 +236,7 @@
 }
 
 .tab-drop-overlay__label {
-  font-size: 11px;
+  font-size: var(--ui-font-size-meta);
   color: var(--primary-foreground);
   background: color-mix(in srgb, var(--chart-2) 20%, transparent);
 }
@@ -311,7 +311,7 @@
 
 .pane-title-drag-handle::after {
   content: '...';
-  font-size: 10px;
+  font-size: var(--ui-font-size-meta);
   line-height: 1;
   letter-spacing: 0;
   color: var(--orca-pane-title-button-hover-fg);
@@ -572,7 +572,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;
-  font-size: 11px;
+  font-size: var(--ui-font-size-meta);
   font-family: inherit;
   color: #a1a1aa;
   background: rgba(24, 24, 27, 0.85);

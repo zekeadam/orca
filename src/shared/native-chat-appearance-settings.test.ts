@@ -16,7 +16,7 @@ describe('native chat appearance normalization', () => {
         contrast: 151,
         matchTerminalInterface: true,
         fontSize: 99,
-        codeFontSize: 12,
+        codeFontSize: 14,
         width: 'comfortable'
       })
     ).toEqual({ ...future, fontSize: 20, contrast: 150, matchTerminalInterface: true })
@@ -42,16 +42,21 @@ describe('native chat appearance normalization', () => {
     expect(
       normalizeNativeChatAppearanceSettings({
         fontSize: 14,
-        codeFontSize: 12,
+        codeFontSize: 14,
         width: 'comfortable'
       })
     ).toBeUndefined()
     expect(resolveNativeChatAppearanceSettings(undefined)).toEqual({
       fontSize: 14,
-      codeFontSize: 12,
+      codeFontSize: 14,
       width: 'comfortable',
       contrast: 100,
       matchTerminalInterface: false
+    })
+  })
+  it('retains an explicit code size below the new default', () => {
+    expect(normalizeNativeChatAppearanceSettings({ codeFontSize: 12 })).toEqual({
+      codeFontSize: 12
     })
   })
   it('resets all five known controls while keeping settings from a newer version', () => {

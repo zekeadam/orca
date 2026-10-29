@@ -13,8 +13,7 @@ import {
   type BrowserVisualTargetRefs
 } from './browser-animated-visual-phase'
 
-const TOUR_FLOATING_SURFACE_CLASS =
-  'border border-black/14 bg-[rgba(255,255,255,0.82)] text-popover-foreground shadow-[0_16px_36px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-2xl dark:border-white/14 dark:bg-[rgba(0,0,0,0.72)] dark:shadow-[0_20px_44px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.04)]'
+const TOUR_FLOATING_SURFACE_CLASS = 'border border-border bg-popover text-popover-foreground'
 
 export function BrowserStoryboardWindow(props: {
   state: BrowserVisualState
@@ -50,7 +49,7 @@ export function BrowserStoryboardWindow(props: {
     phase === 'verified'
 
   return (
-    <div className="relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-xs">
+    <div className="relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground ">
       <div
         ref={targets.titlebarRef}
         className="relative flex min-h-[32px] items-end gap-1.5 border-b border-border bg-muted/40 px-2.5 pt-2"

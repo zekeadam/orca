@@ -53,7 +53,7 @@ export function TaskPageJiraFilters({
     sortedAvailableJiraProjects
   } = model
   return (
-    <div className="rounded-md rounded-b-none border border-border/50 bg-muted/50 px-3 pt-2 pb-0 shadow-sm">
+    <div className="rounded-md rounded-b-none border border-border/50 bg-muted/50 px-3 pt-2 pb-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           <div className="min-w-0 max-w-64">
@@ -92,7 +92,7 @@ export function TaskPageJiraFilters({
                 className={cn(
                   'rounded-md border px-2 py-1 text-xs transition',
                   active
-                    ? 'border-border/50 bg-foreground/90 text-background backdrop-blur-md'
+                    ? 'border-border/50 bg-foreground text-background'
                     : 'border-border/50 bg-transparent text-foreground hover:bg-muted/50'
                 )}
               >
@@ -158,7 +158,6 @@ export function TaskPageJiraFilters({
                 }}
                 disabled={sortedAvailableJiraProjects.length === 0 || jiraProjectsLoading}
                 aria-label={translate('auto.components.TaskPage.0c11ca0b6d', 'New Jira issue')}
-                className="border-border/50 bg-transparent hover:bg-muted/50 backdrop-blur-md supports-[backdrop-filter]:bg-transparent"
               >
                 {jiraProjectsLoading ? (
                   <LoaderCircle className="size-4 animate-spin" />
@@ -179,7 +178,6 @@ export function TaskPageJiraFilters({
                 onClick={() => setJiraRefreshNonce((n) => n + 1)}
                 disabled={jiraLoading}
                 aria-label={translate('auto.components.TaskPage.2ff9fd71fd', 'Refresh Jira issues')}
-                className="border-border/50 bg-transparent hover:bg-muted/50 backdrop-blur-md supports-[backdrop-filter]:bg-transparent"
               >
                 {jiraLoading ? (
                   <LoaderCircle className="size-4 animate-spin" />

@@ -23,6 +23,7 @@ import {
 } from '../applying-settings/onboarding-normalization'
 
 export type PreparedLoadedProfileSettings = {
+  migratedAppFontFamily: GlobalSettings['appFontFamily']
   migratedExperimentalActivity: GlobalSettings['experimentalActivity']
   migratedAutoRenameBranchFromWork: Pick<
     GlobalSettings,
@@ -60,6 +61,16 @@ export function prepareLoadedProfileSettings(
   defaults: PersistedState,
   markNeedsSave: () => void
 ): PreparedLoadedProfileSettings {
+  const appFontFamilyAlreadyMigrated = parsed.settings?.appFontFamilyZDesignMigrated === true
+  const savedAppFontFamily = parsed.settings?.appFontFamily?.trim()
+  const migratedAppFontFamily =
+    !savedAppFontFamily ||
+    (!appFontFamilyAlreadyMigrated && savedAppFontFamily.toLowerCase() === 'geist')
+      ? defaults.settings.appFontFamily
+      : savedAppFontFamily
+  if (!appFontFamilyAlreadyMigrated) {
+    markNeedsSave()
+  }
   const experimentalActivityDefaultedOffForAllUsers =
     parsed.settings?.experimentalActivityDefaultedOffForAllUsers === true
   // Why: preserve the legacy rollout boundary while loading profiles created before the Agents tab graduated.
@@ -232,6 +243,7 @@ export function prepareLoadedProfileSettings(
     markNeedsSave()
   }
   return {
+    migratedAppFontFamily,
     migratedExperimentalActivity,
     migratedAutoRenameBranchFromWork,
     migratedTerminalCursorStyle,

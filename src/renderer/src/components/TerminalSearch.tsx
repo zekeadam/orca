@@ -149,7 +149,7 @@ export default function TerminalSearch({
   return (
     <div
       data-terminal-search-root
-      className="absolute top-2 right-2 z-50 flex items-center gap-1 rounded-lg border border-border bg-popover/95 px-2 py-1 text-popover-foreground shadow-floating backdrop-blur-sm"
+      className="absolute top-2 right-2 z-50 flex items-center gap-1 rounded-md border border-border bg-popover px-2 py-1 text-popover-foreground"
       style={{ width: 340, maxWidth: 'calc(100% - 16px)' }}
       onKeyDown={handleKeyDown}
     >

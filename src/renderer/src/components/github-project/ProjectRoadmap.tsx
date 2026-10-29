@@ -321,7 +321,7 @@ function RoadmapHeaderRow({
   todayPx: number
 }): React.JSX.Element {
   return (
-    <div className="sticky top-0 z-20 flex border-b border-border/60 bg-background/95 backdrop-blur">
+    <div className="sticky top-0 z-20 flex border-b border-border/60 bg-background ">
       <div
         className="sticky left-0 z-30 shrink-0 border-r border-border/50 bg-background px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
         style={{ width: LABEL_WIDTH_PX }}

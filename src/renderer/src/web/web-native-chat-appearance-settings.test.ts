@@ -17,7 +17,7 @@ describe('browser-local chat appearance settings', () => {
     ).toBeUndefined()
     expect(
       mergeSettings(saved, {
-        nativeChatAppearance: { fontSize: 14, codeFontSize: 12, width: 'comfortable' }
+        nativeChatAppearance: { fontSize: 14, codeFontSize: 14, width: 'comfortable' }
       }).nativeChatAppearance
     ).toBeUndefined()
   })

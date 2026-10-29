@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/zekeadam/z-design",
+  "ref": "main",
+  "commit": "44c823a62219d6db25a0867140f50e4dcb3a2b04",
+  "verifiedAt": "2026-10-29T22:03:00+01:00",
+  "source": "dist/z-design.css",
+  "sha256": "940ecda2313a89dacf113a93d16a37f9fb09662389aedac3f8226dc19a6cd5a2"
+}

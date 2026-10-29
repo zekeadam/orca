@@ -257,7 +257,7 @@ export function NativeChatComposerField({
               // Why: always-on hairline (token-level border, not focus ring) —
               // no focus/click border flash. The box is a container, not a
               // focus target.
-              'rounded-xl border border-chat-composer-border p-1.5 shadow-xs',
+              'rounded-none border border-chat-composer-border p-1.5',
               'bg-chat-composer-surface',
               // Why (#10481): the native caret blink invalidates paint up to the
               // nearest containment boundary; without this the whole transcript

@@ -1,0 +1,2 @@
+# Preserve the generated upstream stylesheet's byte hash on every host.
+/z-design.css -text

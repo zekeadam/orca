@@ -48,6 +48,7 @@ export function buildDefaultSettings(args: {
     uiLanguage: UI_LANGUAGE_SYSTEM,
     appIcon: DEFAULT_APP_ICON_ID,
     appFontFamily: args.appFontFamily,
+    appFontFamilyZDesignMigrated: true,
     editorAutoSave: false,
     editorAutoSaveDelayMs: args.editorAutoSaveDelayMs,
     editorMinimapEnabled: false,

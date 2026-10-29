@@ -1,0 +1,98 @@
+/* Z-Core design system — generated from tokens.json and components/bundle.css by scripts/build-css.mjs. Do not edit. */
+:root {
+  color-scheme: dark;
+  --ui-bg: #000000;
+  --ui-surface: #070707;
+  --ui-raised: #0d0d0e;
+  --ui-text: #ffffff;
+  --ui-text-muted: #a0a0a0;
+  --ui-border: #ffffff29;
+  --ui-border-subtle: #ffffff16;
+  --ui-control-border: #ffffff38;
+  --ui-border-hover: #ffffff45;
+  --ui-accent: #00ff44;
+  --ui-on-accent: #001f09;
+  --ui-attention: #ff8300;
+  --ui-danger: #ff0033;
+  --ui-hover: #ffffff08;
+  --ui-selected: #ffffff17;
+  --ui-scrim: #00000088;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 20px;
+  --ui-space-6: 24px;
+  --ui-space-7: 32px;
+  --ui-space-8: 40px;
+  --ui-radius-window: 18px;
+  --ui-radius-card: 16px;
+  --ui-radius-control: 8px;
+  --ui-radius-feed: 0px;
+  --ui-radius-pill: 999px;
+  --ui-radius-small: 4px;
+  --ui-control-height: 40px;
+  --ui-control-height-compact: 32px;
+  --ui-shadow: 0 24px 96px #00000099;
+  --font-body: Consolas, 'SFMono-Regular', 'Liberation Mono', monospace;
+  --font-mono: Consolas, 'SFMono-Regular', 'Liberation Mono', monospace;
+}
+
+/* Z-Core role recipes, copied from public/ui-theme.css. Color, type, spacing and radius
+   values live in tokens.json. Kept here: the selection wash (the token grammar cannot hold
+   color-mix) and the --ui-font-* names the recipes read, bridged to the generated
+   --font-<family> variables. Glass is set aside: the window header is matte. */
+:root {
+  --ui-selection: color-mix(in srgb, var(--ui-accent) 19%, transparent);
+  --ui-font-size-body: 14px;
+  --ui-font-size-meta: 12px;
+  --ui-font-size-window-title: 20px;
+  --ui-line-height-body: 1.5;
+  --ui-line-height-code: 1.65;
+  --ui-font-body: var(--font-body);
+  --ui-font-mono: var(--font-mono);
+}
+
+/* Opt-in role recipes, deliberately lower-specificity than component layout. */
+:where(.ui-window) {
+  color: var(--ui-text);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-window) var(--ui-radius-window) 0 0;
+  box-shadow: var(--ui-shadow);
+  font: var(--ui-font-size-body)/var(--ui-line-height-body) var(--ui-font-body);
+}
+:where(.ui-window-header) {
+  background: var(--ui-raised);
+  border-bottom: 1px solid var(--ui-border);
+}
+:where(.ui-window-title) {
+  font-size: var(--ui-font-size-window-title);
+  font-weight: 600;
+  line-height: 1.25;
+}
+:where(.ui-summary) {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
+}
+:where(.ui-console) {
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: var(--ui-radius-feed);
+  font: var(--ui-font-size-body)/var(--ui-line-height-code) var(--ui-font-mono);
+}
+:where(.ui-control) {
+  min-height: var(--ui-control-height);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-raised);
+  color: var(--ui-text);
+  font: var(--ui-font-size-body)/var(--ui-line-height-body) var(--ui-font-body);
+}
+:where(.ui-control):hover { border-color: var(--ui-border-hover); }
+:where(.ui-control):focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+:where(.ui-link) { color: var(--ui-accent); text-decoration: none; }
+:where(.ui-link):hover { text-decoration: underline; }
+:where(.ui-label) { color: var(--ui-text-muted); font: var(--ui-font-size-body)/var(--ui-line-height-body) var(--ui-font-body); }
+:where(.ui-selected) { background: var(--ui-selected); border-radius: var(--ui-radius-control); }

@@ -82,7 +82,6 @@ export type GlobalSettings = GlobalSettingsBase & {
   leftSidebarTintOpacity?: number
   uiLanguage: UiLanguage
   appIcon: AppIconId
-  appFontFamily: string
   editorAutoSave: boolean
   editorAutoSaveDelayMs: number
   editorMinimapEnabled: boolean

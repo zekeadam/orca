@@ -215,7 +215,7 @@ export function SourceControlPanelContent(props: SourceControlPanelReadyProps) {
 
       {isGitHistoryVisible && (
         // Why: the graph is reference context, so keep it docked at the bottom as the pane scrolls.
-        <div className="sticky bottom-0 z-10 mt-auto shrink-0 border-t border-border bg-sidebar/95 backdrop-blur-sm">
+        <div className="sticky bottom-0 z-10 mt-auto shrink-0 border-t border-border bg-sidebar ">
           <GitHistoryPanel
             state={gitHistoryState}
             collapsed={collapsedSections.has('history')}

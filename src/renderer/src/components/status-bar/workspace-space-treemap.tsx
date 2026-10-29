@@ -79,7 +79,7 @@ export function WorkspaceSpaceTreemap({
             variant="outline"
             size="xs"
             onClick={() => onZoomChange(null)}
-            className="absolute right-2 top-2 gap-1.5 bg-background/90 px-2.5 backdrop-blur"
+            className="absolute right-2 top-2"
           >
             <ZoomOut className="size-3" />
             {translate('auto.components.status.bar.WorkspaceSpaceManagerPanel.ef890d31b9', 'All')}

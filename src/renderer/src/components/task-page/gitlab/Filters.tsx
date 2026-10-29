@@ -45,7 +45,7 @@ export function TaskPageGitLabFilters({
                 className={cn(
                   'rounded-md border px-2.5 py-1 text-xs transition',
                   active
-                    ? 'border-foreground/40 bg-foreground/90 text-background'
+                    ? 'border-foreground/40 bg-foreground text-background'
                     : 'border-border/50 bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                 )}
               >
@@ -87,12 +87,12 @@ export function TaskPageGitLabFilters({
                 )
               })
             }}
-            triggerClassName="h-8 w-full rounded-md border border-border/50 bg-muted/50 px-2 text-xs font-medium shadow-sm transition hover:bg-muted/50 focus:ring-2 focus:ring-ring/20 focus:outline-none"
+            triggerClassName="h-8 w-full rounded-md border border-border/50 bg-muted/50 px-2 text-xs font-medium  transition hover:bg-muted/50 focus:ring-2 focus:ring-ring/20 focus:outline-none"
           />
         </div>
       </div>
       <div
-        className="min-w-0 rounded-md rounded-b-none border border-border/50 bg-muted/50 px-3 pt-2 pb-0 shadow-sm"
+        className="min-w-0 rounded-md rounded-b-none border border-border/50 bg-muted/50 px-3 pt-2 pb-0 "
         data-contextual-tour-target="tasks-search-presets"
       >
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
@@ -113,7 +113,7 @@ export function TaskPageGitLabFilters({
                           className={cn(
                             'rounded-md border px-2 py-1 text-xs transition',
                             active
-                              ? 'border-border/50 bg-foreground/90 text-background backdrop-blur-md'
+                              ? 'border-border/50 bg-foreground text-background'
                               : 'border-border/50 bg-transparent text-foreground hover:bg-muted/50'
                           )}
                         >
@@ -144,7 +144,6 @@ export function TaskPageGitLabFilters({
                           'Refresh GitLab work items'
                         )
                   }
-                  className="border-border/50 bg-transparent hover:bg-muted/50 backdrop-blur-md supports-[backdrop-filter]:bg-transparent"
                 >
                   {gitlabLoading || gitlabTodosLoading ? (
                     <LoaderCircle className="size-4 animate-spin" />

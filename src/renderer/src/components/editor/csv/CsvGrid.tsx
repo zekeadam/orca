@@ -241,7 +241,7 @@ export function CsvGrid({
           <div
             role="row"
             aria-rowindex={1}
-            className="sticky top-0 z-10 grid bg-muted/90 backdrop-blur"
+            className="sticky top-0 z-10 grid bg-muted "
             style={{ gridTemplateColumns: gridTemplate, height: ROW_HEIGHT }}
           >
             <div

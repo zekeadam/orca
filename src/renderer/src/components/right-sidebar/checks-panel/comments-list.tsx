@@ -84,7 +84,7 @@ export function PRCommentsList(props: PRCommentsListProps): React.JSX.Element {
           presentation.sectionHeader,
           // Why: the checks sidebar scrolls as one column; pinning this header keeps
           // filter and add-comment actions reachable while reading long threads.
-          'sticky top-0 z-10 bg-sidebar/95 backdrop-blur-sm'
+          'sticky top-0 z-10 bg-sidebar '
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
