@@ -229,6 +229,8 @@ export function useMobileNativeChatController(args: {
   const { nativeChatSessionOptions, recordCommand: recordNativeChatSessionOptionCommand } =
     useMobileNativeChatSessionOptionController({
       client,
+      handleRef: activeHandleRef,
+      deviceTokenRef,
       activeChatStructured,
       activeSessionTabId,
       agent: activeChatResolution?.agent ?? null,
