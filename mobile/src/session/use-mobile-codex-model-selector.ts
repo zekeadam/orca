@@ -1,3 +1,4 @@
+import { buildMobileCodexModelOptions } from './mobile-codex-model-options'
 import {
   reconcileMobileCodexModelSelection,
   type ConfirmedMobileCodexModelSelection
@@ -8,10 +9,7 @@ import type {
   RuntimeTerminalRead,
   RuntimeTerminalAgentStatus
 } from '../../../src/shared/runtime-terminal-contracts'
-import type {
-  SessionOptionDescriptor,
-  SessionOptionValue
-} from '../../../src/shared/native-chat-session-options'
+import type { SessionOptionValue } from '../../../src/shared/native-chat-session-options'
 import type { RpcClient } from '../transport/rpc-client'
 import { callAgentSession } from './mobile-structured-agent-session-rpc'
 import {
@@ -108,45 +106,9 @@ export function useMobileCodexModelSelector(args: {
   const model = catalog?.models.find((entry) => entry.id === modelId)
   const error =
     failure?.scope === scope ? failure.message : listing?.scope === scope ? listing.error : null
-  const snapshot = useMemo<SessionOptionDescriptor[]>(
-    () => [
-      {
-        id: 'model',
-        label: 'Model',
-        category: 'model',
-        kind: {
-          type: 'select',
-          choices:
-            catalog?.models.map((entry) => ({
-              value: entry.id,
-              label: entry.label,
-              description: entry.description
-            })) ?? [],
-          ...(modelId ? { currentValue: modelId } : {})
-        },
-        settable: !!catalog?.models.length,
-        valueSource: modelId ? 'reported' : 'unknown',
-        transport: 'catalog'
-      },
-      ...(model && model.efforts.length > 1
-        ? [
-            {
-              id: 'effort',
-              label: 'Reasoning effort',
-              category: 'thought_level' as const,
-              kind: {
-                type: 'select' as const,
-                choices: model.efforts,
-                ...(chosen ? { currentValue: chosen.effort } : {})
-              },
-              settable: true,
-              valueSource: chosen ? ('reported' as const) : ('unknown' as const),
-              transport: 'catalog' as const
-            }
-          ]
-        : [])
-    ],
-    [catalog, model, modelId, chosen]
+  const snapshot = useMemo(
+    () => buildMobileCodexModelOptions(catalog, modelId, chosen),
+    [catalog, modelId, chosen]
   )
 
   const setOption = async (id: string, value: SessionOptionValue): Promise<boolean> => {
