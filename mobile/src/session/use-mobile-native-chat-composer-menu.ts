@@ -1,3 +1,4 @@
+import type { DiscoveredSkill } from '../../../src/shared/skills'
 import { useEffect, useMemo, useState } from 'react'
 import {
   applyAutocomplete,
@@ -26,6 +27,8 @@ type MenuKind = 'skill' | 'command'
  */
 export function useMobileNativeChatComposerMenu(input: {
   value: string
+  skills?: readonly DiscoveredSkill[]
+  onSkillMenuOpen?: () => void
   onChangeText: (text: string) => void
   agent: string | null
   /** Undefined on a terminal-backed chat. */
@@ -36,7 +39,7 @@ export function useMobileNativeChatComposerMenu(input: {
   onSlashMenuOpen?: () => void
   focusField: () => void
 }) {
-  const { value, onChangeText, agent, structuredCatalog, filePaths } = input
+  const { value, onChangeText, agent, structuredCatalog, filePaths, skills } = input
   const [cursor, setCursor] = useState(0)
   // Drives the caret only right after an insert; a permanently controlled `selection` breaks
   // manual caret placement in React Native.
@@ -44,8 +47,8 @@ export function useMobileNativeChatComposerMenu(input: {
   const [menuKind, setMenuKind] = useState<MenuKind | null>(null)
 
   const skillTokens = useMemo(
-    () => mobileComposerSkillTokens({ agent, structured: structuredCatalog }),
-    [agent, structuredCatalog]
+    () => mobileComposerSkillTokens({ agent, structured: structuredCatalog, skills }),
+    [agent, structuredCatalog, skills]
   )
   const skillToken = leadingSkillToken(value, skillTokens)
   const setDraft = (next: string): void => {
@@ -75,16 +78,24 @@ export function useMobileNativeChatComposerMenu(input: {
         path
       }))
     }
-    if (menuMode !== 'slash') {
+    if (menuMode !== 'slash' && menuMode !== 'skill') {
       return []
     }
     const items = mobileComposerSlashItems({
       agent,
       structured: structuredCatalog,
+      skills,
+      trigger: menuMode === 'skill' ? '$' : '/',
       query: menuQuery
     })
     return narrowedMenuItems(items, menuKind)
-  }, [agent, filePaths, menuKind, menuMode, menuQuery, structuredCatalog])
+  }, [agent, filePaths, menuKind, menuMode, menuQuery, structuredCatalog, skills])
+
+  const navigationKey = `${menuMode}:${menuQuery}:${rows.map((row) => row.id).join(',')}`
+  const [navigation, setNavigation] = useState({ key: '', index: 0, dismissed: false })
+  const selectedIndex =
+    navigation.key === navigationKey ? Math.min(navigation.index, rows.length - 1) : 0
+  const visibleRows = navigation.key === navigationKey && navigation.dismissed ? [] : rows
 
   const { onNeedFiles, onSlashMenuOpen } = input
   useEffect(() => {
@@ -92,12 +103,13 @@ export function useMobileNativeChatComposerMenu(input: {
       onNeedFiles?.(trigger.query)
     }
   }, [onNeedFiles, trigger?.kind, trigger?.query])
-  const slashOpen = trigger?.kind === 'slash'
+  const slashOpen = trigger?.kind === 'slash' || trigger?.kind === 'skill'
   useEffect(() => {
     if (slashOpen) {
       onSlashMenuOpen?.()
+      input.onSkillMenuOpen?.()
     }
-  }, [onSlashMenuOpen, slashOpen])
+  }, [onSlashMenuOpen, input.onSkillMenuOpen, slashOpen])
 
   const placeCaret = (at: number): void => {
     setCursor(at)
@@ -145,7 +157,29 @@ export function useMobileNativeChatComposerMenu(input: {
     onFieldChange,
     skillToken,
     skillCount: skillTokens.size,
-    rows,
+    rows: visibleRows,
+    selectedIndex,
+    onKeyPress: (event: { nativeEvent: { key: string }; preventDefault?: () => void }): void => {
+      if (!visibleRows.length) {
+        return
+      }
+      const key = event.nativeEvent.key
+      if (!['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(key)) {
+        return
+      }
+      event.preventDefault?.()
+      if (key === 'Escape') {
+        setNavigation({ key: navigationKey, index: 0, dismissed: true })
+      } else if (key === 'Enter' || key === 'Tab') {
+        pick(visibleRows[selectedIndex]!)
+      } else {
+        setNavigation({
+          key: navigationKey,
+          index: (selectedIndex + (key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length,
+          dismissed: false
+        })
+      }
+    },
     pick,
     openSlashMenu,
     openFileMenu,

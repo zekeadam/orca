@@ -175,6 +175,12 @@ export function MobileNativeChatSessionOptionPickers({
               <SessionOptionCaption>Sent to the agent — not confirmed</SessionOptionCaption>
             ) : null}
             {reason ? <SessionOptionCaption>{reason}</SessionOptionCaption> : null}
+            {controller.loading ? (
+              <SessionOptionCaption>Loading models from host…</SessionOptionCaption>
+            ) : null}
+            {controller.error ? (
+              <SessionOptionCaption>{controller.error}</SessionOptionCaption>
+            ) : null}
             <View style={styles.group}>
               <DescriptorRows
                 descriptor={activeDescriptor}

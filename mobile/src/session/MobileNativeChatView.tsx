@@ -1,3 +1,4 @@
+import type { MobileChatSkillDiscovery } from './use-mobile-native-chat-skills'
 import { useCallback, useMemo, useState } from 'react'
 import { nativeChatTaskListPredecessors } from '../../../src/shared/native-chat-task-list-history'
 import {
@@ -133,6 +134,7 @@ type Props = ComposerTrayProps & {
   /** Model/session-option pickers for the composer action row (desktop parity). */
   sessionOptions?: MobileNativeChatSessionOptionPickersProps | null
   /** A structured chat's + sheet, files and skills; absent on a terminal-backed chat. */
+  skillDiscovery?: MobileChatSkillDiscovery
   structuredComposer?: MobileNativeChatStructuredComposer | null
   /** A pending agent question/permission detected from live status, shown as a
    *  native card above the composer; answering sends text to the agent. */
@@ -210,6 +212,7 @@ export function MobileNativeChatView({
   onNeedFiles,
   sessionOptions,
   structuredComposer = null,
+  skillDiscovery,
   ask,
   askKey,
   onDismissAsk,
@@ -416,6 +419,7 @@ export function MobileNativeChatView({
       {trayContent}
       <MobileNativeChatComposer
         structured={structuredActivityUi ? structuredComposer : null}
+        skillDiscovery={skillDiscovery}
         value={composerText}
         onChangeText={onComposerTextChange}
         onSend={handleSend}

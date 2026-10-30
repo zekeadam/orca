@@ -35,6 +35,8 @@ import {
   type ProjectSectionModel
 } from '../../../src/shared/project-section-grouping'
 import { withRepoSectionDisplayLabels } from '../../../src/shared/project-section-order'
+import type { ProjectGroup } from '../../../src/shared/project-group-types'
+import { groupMobileProjectSections } from './workspace-project-group-sections'
 import type { ProjectOrderBy } from '../../../src/shared/ui-chrome-types'
 import {
   filterWorkspaceRows,
@@ -52,6 +54,7 @@ export type ProjectSectionCatalog = {
   /** Manual header rank; undefined keeps first-row order. */
   repoOrder: ReadonlyMap<string, number> | undefined
   projectOrderBy: ProjectOrderBy
+  projectGroups?: readonly ProjectGroup[]
 }
 
 export const NO_PROJECT_SECTION_CATALOG: ProjectSectionCatalog = {
@@ -294,13 +297,17 @@ export function buildMobileWorkspacePlan(
   return {
     occurrencePlan,
     render: (collapsed: ReadonlySet<string>): Section[] =>
-      occurrencePlan.sections.map((section) => ({
-        key: section.key,
-        title: section.title,
-        ...(section.icon ? { icon: section.icon } : {}),
-        ...(section.repo ? { repo: section.repo } : {}),
-        data: getMobileOccurrenceRows(occurrencePlan, section.key, collapsed)
-      }))
+      groupMobileProjectSections(
+        occurrencePlan.sections.map((section) => ({
+          key: section.key,
+          title: section.title,
+          ...(section.icon ? { icon: section.icon } : {}),
+          ...(section.repo ? { repo: section.repo } : {}),
+          data: getMobileOccurrenceRows(occurrencePlan, section.key, collapsed)
+        })),
+        groupMode === 'repo' ? projectCatalog : undefined,
+        collapsed
+      )
   }
 }
 

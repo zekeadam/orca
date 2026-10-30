@@ -1,10 +1,11 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   BINARY_SOURCE_EXTENSIONS,
+  BINARY_SOURCE_PATHS,
   assertNoCarriageReturnsInSource
 } from './mobile-web-source-line-endings.mjs'
 
@@ -58,8 +59,10 @@ describe('the page source line-ending pin', () => {
 
     const eol = attributes('eol', sources)
     const text = attributes('text', sources)
-    const binary = sources.filter((path) =>
-      BINARY_SOURCE_EXTENSIONS.some((extension) => path.endsWith(extension))
+    const binary = sources.filter(
+      (path) =>
+        BINARY_SOURCE_PATHS.some((binaryPath) => path === `mobile/src/${binaryPath}`) ||
+        BINARY_SOURCE_EXTENSIONS.some((extension) => path.endsWith(extension))
     )
     const unpinnedText = sources.filter((path) => !binary.includes(path) && eol.get(path) !== 'lf')
     const pinnedBinary = binary.filter((path) => text.get(path) !== 'unset')
@@ -102,4 +105,17 @@ describe('assertNoCarriageReturnsInSource', () => {
       await rm(scratch, { recursive: true, force: true })
     }
   })
+})
+
+it('preserves captured CRLF terminal bytes without exempting ordinary text fixtures', async () => {
+  const scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-raw-pty-'))
+  try {
+    await mkdir(join(scratch, 'session/__fixtures__'), { recursive: true })
+    await writeFile(join(scratch, BINARY_SOURCE_PATHS[0]), '\x1b[2Jcaptured\r\n')
+    await expect(assertNoCarriageReturnsInSource(scratch)).resolves.toBeUndefined()
+    await writeFile(join(scratch, 'ordinary.txt'), 'not captured\r\n')
+    await expect(assertNoCarriageReturnsInSource(scratch)).rejects.toThrow(/ordinary.txt/)
+  } finally {
+    await rm(scratch, { recursive: true, force: true })
+  }
 })

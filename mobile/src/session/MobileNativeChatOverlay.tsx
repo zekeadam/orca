@@ -1,3 +1,4 @@
+import type { MobileChatSkillDiscovery } from './use-mobile-native-chat-skills'
 import { useMemo } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { MobileNativeChatView, type MobileNativeChatInputLockReason } from './MobileNativeChatView'
@@ -25,6 +26,7 @@ type Props = {
    *  rides the pending images along with the message text (desktop parity). */
   images: MobileNativeChatImageAttachments
   /** A structured chat's + sheet, files and skills; null on a terminal-backed chat. */
+  skillDiscovery?: MobileChatSkillDiscovery
   structuredComposer?: MobileNativeChatStructuredComposer | null
   onMicPress: () => void
   micActive: boolean
@@ -54,6 +56,7 @@ export function MobileNativeChatOverlay({
   onOpenFile,
   images,
   structuredComposer = null,
+  skillDiscovery,
   onMicPress,
   micActive,
   dictationMode,
@@ -173,6 +176,7 @@ export function MobileNativeChatOverlay({
               onNeedFiles={controller.loadNativeChatFiles}
               sessionOptions={controller.nativeChatSessionOptions}
               structuredComposer={structuredComposer}
+              skillDiscovery={skillDiscovery}
               keyboardInset={keyboardInset}
             />
           </MobileNativeChatReplyRevealsContext.Provider>

@@ -1,3 +1,4 @@
+import { useMobileNativeChatSkills } from './use-mobile-native-chat-skills'
 import { useEffect } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
 import { useClipboardReader } from '../platform/clipboard'
@@ -108,6 +109,14 @@ export function useMobileSessionAttachments(scope: MobileSessionAccessorySelecti
       onSuccess: triggerSelection,
       onError: triggerError
     })
+  const nativeChatSkillDiscovery = useMobileNativeChatSkills({
+    client,
+    hostId,
+    worktreeId,
+    agent,
+    cwd: activeHandle ? scope.terminalCwdRef.current.get(activeHandle) : null,
+    enabled: connState === 'connected'
+  })
   const nativeChatStructuredComposer = useMobileNativeChatStructuredComposer({
     client,
     hostId,
@@ -199,7 +208,8 @@ export function useMobileSessionAttachments(scope: MobileSessionAccessorySelecti
     attachImage,
     isAttaching,
     nativeChatImages,
-    nativeChatStructuredComposer
+    nativeChatStructuredComposer,
+    nativeChatSkillDiscovery
   }
 }
 

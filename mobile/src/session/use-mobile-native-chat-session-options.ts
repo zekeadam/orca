@@ -31,6 +31,8 @@ import {
 } from '../../../src/shared/native-chat-session-option-state'
 
 export type MobileNativeChatSessionOptionsController = {
+  error?: string
+  loading?: boolean
   conversationCommands?: readonly AgentSessionConversationCommand[]
   optionPickerRequest?: { id: string; sequence: number } | null
   /** Model descriptor first, then the current model's options; empty when the

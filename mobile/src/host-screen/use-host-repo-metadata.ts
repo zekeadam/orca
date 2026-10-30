@@ -43,13 +43,15 @@ function acceptedMetadata<Value>(
 }
 
 /** A desktop repo.list row as Project sections read it, for a desktop that serves no catalog. */
-function desktopSectionRepo(repo: HostRepoCatalogRow): SectionRepo {
+export function desktopSectionRepo(repo: HostRepoCatalogRow): SectionRepo {
   return {
     id: repo.id,
     displayName: repo.displayName,
     path: repo.path ?? repo.id,
     executionHostId: getRepoExecutionHostId(repo),
     ...(repo.badgeColor ? { badgeColor: repo.badgeColor } : {}),
+    projectGroupId: repo.projectGroupId,
+    projectGroupOrder: repo.projectGroupOrder,
     ...(repo.repoIcon ? { repoIcon: repo.repoIcon } : {})
   }
 }

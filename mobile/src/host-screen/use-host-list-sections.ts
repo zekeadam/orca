@@ -64,10 +64,12 @@ function useLegacyHostListSections({
         state.servedProjectSections,
         state.desktopRepos,
         state.view.filters.visibleHostIds,
-        state.view.projectOrderBy
+        state.view.projectOrderBy,
+        state.hostProjectGroups
       ),
     [
       state.servedProjectSections,
+      state.hostProjectGroups,
       state.desktopRepos,
       state.view.filters.visibleHostIds,
       state.view.projectOrderBy
