@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { AgentType } from './agent-status-types'
 import type { ProjectExecutionRuntimeResolution } from './project-execution-runtime'
+import type { SkillPromptMode } from './skill-prompt-modes'
 
 export type SkillProvider = 'codex' | 'claude' | 'agent-skills'
 
@@ -10,6 +11,8 @@ export type DiscoveredSkill = {
   id: string
   name: string
   description: string | null
+  /** Documented invocation choices; absent on older discovery hosts. */
+  promptModes?: SkillPromptMode[]
   providers: SkillProvider[]
   sourceKind: SkillSourceKind
   sourceLabel: string

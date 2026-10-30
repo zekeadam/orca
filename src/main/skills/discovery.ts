@@ -2,6 +2,7 @@ import { open, realpath, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, dirname, relative, sep } from 'node:path'
 import { summarizeSkillMarkdown } from '../../shared/skill-metadata'
+import { extractSkillPromptModes, type SkillPromptMode } from '../../shared/skill-prompt-modes'
 import type { Repo } from '../../shared/repo-types'
 import type {
   DiscoveredSkill,
@@ -117,6 +118,7 @@ async function readSkillSummary(skillFilePath: string): Promise<{
   name: string | null
   description: string | null
   updatedAt: number | null
+  promptModes: SkillPromptMode[]
 } | null> {
   try {
     const fileStat = await stat(skillFilePath)
@@ -129,8 +131,13 @@ async function readSkillSummary(skillFilePath: string): Promise<{
     } finally {
       await file.close()
     }
+    const summary = summarizeSkillMarkdown(content)
     return {
-      ...summarizeSkillMarkdown(content),
+      ...summary,
+      promptModes: extractSkillPromptModes(
+        content,
+        summary.name ?? basename(dirname(skillFilePath))
+      ),
       updatedAt: fileStat.mtimeMs
     }
   } catch {
@@ -164,6 +171,7 @@ async function scanRoot(root: SkillScanRoot, signal: AbortSignal): Promise<Scann
         id: stablePathId(canonicalSkillFilePath),
         name: summary.name ?? basename(directoryPath),
         description: summary.description,
+        ...(summary.promptModes.length ? { promptModes: summary.promptModes } : {}),
         // Copy: `root.providers` is shared across every skill/source from this
         // root, so the dedup merge below must not mutate the aliased array.
         providers: [...root.providers],

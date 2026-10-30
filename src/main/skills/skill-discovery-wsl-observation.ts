@@ -1,5 +1,6 @@
 import { posix as pathPosix } from 'node:path'
 import { summarizeSkillMarkdown } from '../../shared/skill-metadata'
+import { extractSkillPromptModes } from '../../shared/skill-prompt-modes'
 import type {
   DiscoveredSkill,
   SkillDiscoveryResult,
@@ -62,12 +63,14 @@ export function readWslSkillDiscoveryObservation(
     const summary = summarizeSkillMarkdown(markdown)
     const sourceKind = sourceKindForSkill(root, skillFilePath, pathPosix)
     const directoryName = pathPosix.basename(directoryPath)
+    const promptModes = extractSkillPromptModes(markdown, summary.name ?? directoryName)
     rows.push({
       canonicalSkillFilePath,
       skill: {
         id: stablePathId(canonicalSkillFilePath),
         name: summary.name ?? directoryName,
         description: summary.description,
+        ...(promptModes.length ? { promptModes } : {}),
         // Copy: `root.providers` is shared across every skill/source from this
         // root, so a later in-place merge must not mutate the aliased array.
         providers: [...root.providers],

@@ -176,6 +176,9 @@ export function useNativeChatPickerState(args: {
         textareaRef.current.insertSkill(from, caret, result.insertedToken)
       }
       commitCompletion(result)
+      if (item.kind === 'skill-mode') {
+        return
+      }
       skillOriginRef.current = item.kind === 'skill' ? result.insertedToken : null
       emitNativeChatPickerItemAccepted({ agent, itemKind: item.kind })
     },

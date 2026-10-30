@@ -38,8 +38,7 @@ export const NativeChatPickerMenu = memo(function NativeChatPickerMenu({
     autocomplete.skillStatus === 'loading' || autocomplete.skillStatus === 'error'
   const showCommandsHeading = autocomplete.grouped && commands.length > 0
   const showSkillsHeading = autocomplete.grouped && (skills.length > 0 || hasSkillStatus)
-  const noMatches =
-    autocomplete.skillStatus === 'ready' && commands.length === 0 && skills.length === 0
+  const noMatches = autocomplete.skillStatus === 'ready' && autocomplete.items.length === 0
   const emptyText = noMatches ? getPickerEmptyText(autocomplete) : null
   const collision = commands.find((item) => item.skillCollision)
   const duplicate = skills.find((item) => item.sources.length > 1)
@@ -55,6 +54,24 @@ export const NativeChatPickerMenu = memo(function NativeChatPickerMenu({
   let optionIndex = 0
   return (
     <PickerListbox id={listboxId}>
+      {autocomplete.items.some((item) => item.kind === 'skill-mode') ? (
+        <PickerStatus>
+          {translate('components.native-chat.composer.skillModes', 'Skill modes')}
+        </PickerStatus>
+      ) : null}
+      {autocomplete.items
+        .filter((item) => item.kind === 'skill-mode')
+        .map((item, index) => (
+          <PickerOption
+            key={item.id}
+            item={item}
+            index={index}
+            activeIndex={activeIndex}
+            listboxId={listboxId}
+            activeItemRef={activeItemRef}
+            onChoose={onChoose}
+          />
+        ))}
       {showCommandsHeading ? <PickerGroupHeading kind="commands" /> : null}
       {commands.map((item) => {
         const index = optionIndex++

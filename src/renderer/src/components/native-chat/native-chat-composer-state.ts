@@ -2,6 +2,10 @@ import type { DiscoveredSkill } from '../../../../shared/skills'
 import { formatNativeChatFileReference } from '../../../../shared/agent-image-paste'
 import type { NativeChatAgentProfile } from '../../../../shared/native-chat-agent-profiles'
 import {
+  deriveSkillModeAutocomplete,
+  isSkillModeTrigger
+} from './native-chat-skill-mode-autocomplete'
+import {
   filterSlashCommands,
   isSlashCommandDraft,
   applySlashSuggestion,
@@ -62,6 +66,7 @@ export function isSkillPickerTriggered(
     return false
   }
   return (
+    isSkillModeTrigger(before) ||
     LEADING_SLASH_TRIGGER.test(before) ||
     MID_PROMPT_SLASH_TRIGGER.test(before) ||
     (profile.skillPrefix === '$' && matchSkillSigil(before) !== null)
@@ -79,6 +84,17 @@ export function deriveComposerAutocomplete(
   sessionSkills?: readonly NativeChatSessionSkill[]
 ): ComposerAutocomplete {
   const before = draft.slice(0, caret)
+  const skillModes = deriveSkillModeAutocomplete(
+    before,
+    skills,
+    profile,
+    dismissedTriggerKey,
+    agentCommands,
+    sessionSkills
+  )
+  if (skillModes) {
+    return skillModes
+  }
   const leadingMatch = before.match(LEADING_SLASH_TRIGGER)
   if (leadingMatch) {
     return deriveSlashAutocomplete(
