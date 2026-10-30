@@ -137,7 +137,7 @@ describe('InlineUsageBars', () => {
 
     expect(markup).toContain('w-[48px] h-[6px]')
     expect(markup).toContain('width:37%')
-    expect(markup).toContain('37% wk')
+    expect(markup).toContain('37%</span> wk')
   })
 
   it('shows remaining copy and remaining meter fill', async () => {
@@ -155,5 +155,28 @@ describe('InlineUsageBars', () => {
     expect(markup).toContain('width:84%')
     expect(markup).toContain('width:58%')
     expect(markup).not.toContain('width:32%')
+  })
+})
+
+describe('status bar percentage color', () => {
+  it.each([
+    [59, 'normal'],
+    [60, 'warning'],
+    [79, 'warning'],
+    [80, 'urgent']
+  ])('colors only the percentage at %s consumed, including remaining mode', async (used, tone) => {
+    const { ProviderSegment } = await import('./StatusBar')
+    const limits = claudeLimits()
+    limits.session!.usedPercent = Number(used)
+    limits.weekly = null
+    limits.fableWeekly = null
+    const markup = renderToStaticMarkup(
+      <ProviderSegment p={limits} compact={false} display="remaining" />
+    )
+    expect(markup).toContain(`data-tone="${tone}"`)
+    expect(markup).toContain(`>${100 - Number(used)}%</span> 5h</span>`)
+    expect(markup).toContain(
+      'text-status-success data-[tone=warning]:text-status-warning data-[tone=urgent]:text-destructive'
+    )
   })
 })

@@ -13,7 +13,7 @@ import { useOnboardingFlow } from './use-onboarding-flow'
 import { OnboardingSkipConfirmationDialog } from './OnboardingSkipConfirmationDialog'
 import { OnboardingFooter } from './OnboardingFooter'
 import { shouldRequestOnboardingSkipConfirmation } from './onboarding-dismiss-target'
-import logo from '../../../../../resources/logo.svg'
+import { AppLogo } from '@/components/app-logo'
 import { translate } from '@/i18n/i18n'
 
 const stepCopy = {
@@ -226,12 +226,7 @@ export default function OnboardingFlow({
         >
           <div className="relative flex h-full min-h-0 flex-col px-6 pb-6 pt-8 sm:px-8 sm:pb-8 sm:pt-9">
             <div className="flex items-center gap-3 text-base font-semibold tracking-tight">
-              <img
-                src={logo}
-                alt=""
-                aria-hidden="true"
-                className="h-7 w-auto shrink-0 invert dark:invert-0"
-              />
+              <AppLogo className="size-7" />
               <span>
                 {translate('auto.components.onboarding.OnboardingFlow.a249f81538', 'Orca')}
               </span>

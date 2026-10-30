@@ -51,7 +51,7 @@ describe('ProviderSegment monthly window', () => {
       <ProviderSegment p={grokMonthlyLimits('ok')} compact={false} display="used" mode="compact" />
     )
 
-    expect(markup).toContain('>25% 30d<')
+    expect(markup).toContain('>25%</span> 30d<')
   })
 
   it('shows monthly data while fetching instead of the loading placeholder', async () => {
@@ -66,7 +66,7 @@ describe('ProviderSegment monthly window', () => {
       />
     )
 
-    expect(markup).toContain('>25% 30d<')
+    expect(markup).toContain('>25%</span> 30d<')
     expect(markup).not.toContain('···')
   })
 
@@ -86,7 +86,7 @@ describe('ProviderSegment monthly window', () => {
       <ProviderSegment p={limits} compact={false} display="used" mode="compact" />
     )
 
-    expect(markup).toContain('>30% 30d<')
+    expect(markup).toContain('>30%</span> 30d<')
     expect(markup).not.toContain('>10%')
     expect(markup).not.toContain('>20%')
   })
@@ -110,7 +110,7 @@ describe('ProviderSegment monthly window', () => {
       <ProviderSegment p={limits} compact={false} display="used" mode="compact" />
     )
 
-    expect(markup).toContain('>80% Pro<')
+    expect(markup).toContain('>80%</span> Pro<')
     expect(markup).not.toContain('>25%')
   })
 
@@ -135,7 +135,7 @@ describe('ProviderSegment monthly window', () => {
         <ProviderSegment p={limits} compact={false} display="used" mode="compact" />
       )
 
-      expect(markup).toContain('>42% 2h 33m<')
+      expect(markup).toContain('>42%</span> 2h 33m<')
       expect(markup).not.toContain('5h')
       // The consolidated footer intentionally renders only the tightest window.
       expect(markup).not.toContain('>10%')
@@ -177,9 +177,9 @@ describe('ProviderSegment monthly window', () => {
       <ProviderSegment p={limits} compact={false} display="used" mode="verbose" />
     )
 
-    expect(markup).toContain('>10% 5h<')
-    expect(markup).toContain('>20% wk<')
-    expect(markup).toContain('>30% Fable<')
+    expect(markup).toContain('>10%</span> 5h<')
+    expect(markup).toContain('>20%</span> wk<')
+    expect(markup).toContain('>30%</span> Fable<')
     expect(markup).not.toContain('>40%')
   })
 })

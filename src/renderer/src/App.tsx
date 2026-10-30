@@ -34,6 +34,7 @@ import { usePersistedUIWriter } from './app-shell/use-persisted-ui-writer'
 import { useRuntimeGraphSync } from './app-shell/use-runtime-graph-sync'
 import { useWindowVisibilityEffects } from './app-shell/use-window-visibility-effects'
 import { SpaceWindowStatePublisher } from './components/workspace-space/SpaceWindowStatePublisher'
+import { OrcaUiAnnotations } from './components/orca-ui-annotations/OrcaUiAnnotations'
 
 function App(): React.JSX.Element {
   const layout = useAppChromeLayout()
@@ -102,6 +103,7 @@ function App(): React.JSX.Element {
               onboardingGate={onboardingGate}
             />
             <BrowserWebAuthnAccountDialog />
+            <OrcaUiAnnotations />
           </LinkRoutingPreferenceDialogProvider>
         </ConfirmationDialogProvider>
         <Toaster closeButton toastOptions={{ className: 'font-sans text-sm' }} />

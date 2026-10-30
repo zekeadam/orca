@@ -12,7 +12,7 @@ import {
 import { ShortcutKeyCombo } from './ShortcutKeyCombo'
 import { useShortcutKeyDetails, type ShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
 import { useMountedRef } from '@/hooks/useMountedRef'
-import logo from '../../../../resources/logo.svg'
+import { AppLogo } from '@/components/app-logo'
 import { translate } from '@/i18n/i18n'
 import { hasGitHubBackedProject, type PreflightIssue } from './landing-preflight-issues'
 import { useLandingPreflightRuntime } from './landing-preflight-runtime'
@@ -259,9 +259,8 @@ export default function Landing(): React.JSX.Element {
             className="flex items-center justify-center size-20 rounded-2xl border border-border/80 shadow-lg shadow-black/40"
             style={{ backgroundColor: '#12181e' }}
           >
-            <img
-              src={logo}
-              alt={translate('auto.components.Landing.520304a067', 'Orca logo')}
+            <AppLogo
+              label={translate('auto.components.Landing.520304a067', 'Orca logo')}
               className="size-12"
             />
           </div>

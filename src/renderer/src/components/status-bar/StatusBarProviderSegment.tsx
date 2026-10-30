@@ -55,10 +55,19 @@ function WindowLabel({
   showLabel?: boolean
   labelFirst?: boolean
 }): React.JSX.Element {
+  const used = clampUsedPercent(w.usedPercent)
+  const tone =
+    used >= USAGE_URGENT_PERCENT ? 'urgent' : used >= USAGE_WARNING_PERCENT ? 'warning' : 'normal'
   return (
     <span className="tabular-nums">
       {showLabel && labelFirst ? `${label} ` : ''}
-      {formatBareUsagePercentage(w.usedPercent, display)}
+      <span
+        data-usage-percentage
+        data-tone={tone}
+        className="text-status-success data-[tone=warning]:text-status-warning data-[tone=urgent]:text-destructive"
+      >
+        {formatBareUsagePercentage(w.usedPercent, display)}
+      </span>
       {showLabel && !labelFirst ? ` ${label}` : ''}
     </span>
   )
