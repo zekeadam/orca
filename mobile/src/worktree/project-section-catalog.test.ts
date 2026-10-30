@@ -113,8 +113,9 @@ describe('observed older desktop envelope with anonymized IDs and paths', () => 
       ok: true,
       result: { catalog: { repos: rows, projects: [], setups: [], projectOrderBy: 'manual' } }
     })
-    if (!result.accepted || !result.value)
+    if (!result.accepted || !result.value) {
       throw new Error('Observed legacy catalog must remain readable')
+    }
     return result.value
   }
   it('recovers all14 memberships across4/4/6 groups from repo.list when served15row catalog omits metadata', () => {
