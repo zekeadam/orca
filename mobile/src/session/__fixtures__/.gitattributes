@@ -1,0 +1,3 @@
+# Captured terminal bytes retain escape sequences, CRLF and screen padding.
+codex-model-picker.txt -text -diff
+codex-session-model-effort.txt -text -diff

@@ -1,7 +1,8 @@
 import type { RpcClient } from '../transport/rpc-client'
 import { useMobileOmpModelDiscovery } from './use-mobile-omp-model-discovery'
 import type { AgentSessionConversationCommand } from '../../../src/shared/agent-session-conversation-command'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, type MutableRefObject } from 'react'
+import { useMobileCodexModelSelector } from './use-mobile-codex-model-selector'
 import type {
   SessionOptionDescriptor,
   SessionOptionValue
@@ -16,6 +17,8 @@ import {
 
 export function useMobileNativeChatSessionOptionController(args: {
   client?: RpcClient | null
+  handleRef?: MutableRefObject<string | null>
+  deviceTokenRef?: MutableRefObject<string | null>
   activeChatStructured: boolean
   activeSessionTabId: string | null
   agent: string | null
@@ -71,6 +74,16 @@ export function useMobileNativeChatSessionOptionController(args: {
     worktreeId,
     enabled: !activeChatStructured && agent === 'omp' && activeSessionTabId !== null
   })
+  const codexSelector = useMobileCodexModelSelector({
+    enabled: !activeChatStructured && agent === 'codex' && activeSessionTabId !== null,
+    client: args.client ?? null,
+    scope: mobileNativeChatScopeKey(hostId, worktreeId, activeSessionTabId),
+    worktreeId,
+    handleRef: args.handleRef,
+    deviceTokenRef: args.deviceTokenRef,
+    reportedModel,
+    dispatchCommand
+  })
   const sessionOptions = useMobileNativeChatSessionOptions({
     discoveredModels,
     modelSwitchCommand: args.modelSwitchCommand,
@@ -110,10 +123,12 @@ export function useMobileNativeChatSessionOptionController(args: {
         ? structuredController
           ? { controller: structuredController, isWorking }
           : null
-        : sessionOptions.snapshot.length > 0
-          ? { controller: sessionOptions, isWorking }
-          : null,
-    [activeChatStructured, isWorking, sessionOptions, structuredController]
+        : agent === 'codex'
+          ? { controller: codexSelector, isWorking }
+          : sessionOptions.snapshot.length > 0
+            ? { controller: sessionOptions, isWorking }
+            : null,
+    [activeChatStructured, agent, codexSelector, isWorking, sessionOptions, structuredController]
   )
 
   return { nativeChatSessionOptions, recordCommand: sessionOptions.recordCommand }
