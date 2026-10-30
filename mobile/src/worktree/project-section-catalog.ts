@@ -33,10 +33,19 @@ export function buildProjectSectionCatalog(
   }
   // Why: the desktop withholds uploaded image icons from the snapshot; its repo.list still carries them.
   const iconKey = (repo: SectionRepo) => `${getRepoExecutionHostId(repo)}|${repo.id}`
-  const iconByKey = new Map(desktopRepos.map((repo) => [iconKey(repo), repo.repoIcon]))
+  const desktopByKey = new Map(desktopRepos.map((repo) => [iconKey(repo), repo]))
   const repos = served.repos.map((repo) => {
-    const icon = repo.repoIcon ? undefined : iconByKey.get(iconKey(repo))
-    return icon ? { ...repo, repoIcon: icon } : repo
+    const desktop = desktopByKey.get(iconKey(repo))
+    const icon = repo.repoIcon ? undefined : desktop?.repoIcon
+    return {
+      ...repo,
+      ...(icon ? { repoIcon: icon } : {}),
+      // Older catalog snapshots omit group metadata that repo.list already carries.
+      projectGroupId:
+        repo.projectGroupId === undefined ? desktop?.projectGroupId : repo.projectGroupId,
+      projectGroupOrder:
+        repo.projectGroupOrder === undefined ? desktop?.projectGroupOrder : repo.projectGroupOrder
+    }
   })
   return {
     repos: shown(repos),
