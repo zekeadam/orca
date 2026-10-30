@@ -1,5 +1,5 @@
 import { readFile, readdir } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 
 /**
  * Pinned `-text` in .gitattributes and skipped below, because a 0x0d in them means nothing. .svg
@@ -17,6 +17,12 @@ export const BINARY_SOURCE_EXTENSIONS = [
   '.otf',
   '.woff',
   '.woff2'
+]
+
+// Raw PTY evidence is pinned -text in its local .gitattributes, never page source.
+export const BINARY_SOURCE_PATHS = [
+  'session/__fixtures__/codex-model-picker.txt',
+  'session/__fixtures__/codex-session-model-effort.txt'
 ]
 
 async function listSourceFiles(directory) {
@@ -40,7 +46,10 @@ async function listSourceFiles(directory) {
 export async function assertNoCarriageReturnsInSource(directory) {
   const offenders = []
   for (const file of await listSourceFiles(directory)) {
-    if (BINARY_SOURCE_EXTENSIONS.some((extension) => file.endsWith(extension))) {
+    if (
+      BINARY_SOURCE_PATHS.includes(relative(directory, file).split('\\').join('/')) ||
+      BINARY_SOURCE_EXTENSIONS.some((extension) => file.endsWith(extension))
+    ) {
       continue
     }
     // Written by mobile's postinstall, gitignored, so no eol pin applies and none is needed.
