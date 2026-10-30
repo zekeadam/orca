@@ -114,10 +114,10 @@ export function RetainedPaneHost({
               // mount the terminal into a 0x0 overlay. Measure the tab-group
               // body so the fallback does not cover the tab strip.
               position: 'absolute',
-              top: measuredFallbackRect?.top ?? 32,
+              top: measuredFallbackRect?.top ?? 40,
               left: measuredFallbackRect?.left ?? 0,
               width: measuredFallbackRect?.width ?? '100%',
-              height: measuredFallbackRect?.height ?? 'calc(100% - 32px)',
+              height: measuredFallbackRect?.height ?? 'calc(100% - 40px)',
               display: isVisible || measureWhileHidden ? 'flex' : 'none',
               opacity: isVisible ? 1 : 0,
               pointerEvents: isVisible ? 'auto' : 'none'

@@ -9,12 +9,10 @@ import type { ActivityBarItem } from './activity-bar-buttons'
 import { ActivityBarPositionMenu } from './activity-bar-position-menu'
 import {
   RIGHT_SIDEBAR_HEADER_NO_DRAG_CLASS_NAME,
-  RIGHT_SIDEBAR_TOP_ACTIVITY_STRIP_CLASS_NAME,
-  RIGHT_SIDEBAR_WINDOWS_TOP_ACTIVITY_STRIP_CLASS_NAME
+  RIGHT_SIDEBAR_TOP_ACTIVITY_STRIP_CLASS_NAME
 } from './right-sidebar-titlebar-drag-regions'
 
 export function RightSidebarTopActivityBar({
-  hasDesktopWindowChrome,
   topActivityStripRef,
   topActivityLayout,
   effectiveTab,
@@ -37,8 +35,8 @@ export function RightSidebarTopActivityBar({
   return (
     /* ── Top activity bar: horizontal icon row ── */
     <ContextMenu>
-      <div className="flex h-[36px] min-h-[36px] items-center border-b border-border right-sidebar-header-inset right-sidebar-header-drag overflow-hidden">
-        {!hasDesktopWindowChrome && (
+      <div className="flex h-[40px] min-h-[40px] items-center border-b border-border right-sidebar-header-inset right-sidebar-header-drag overflow-hidden">
+        {
           <TooltipProvider delayDuration={400}>
             <ContextMenuTrigger asChild>
               <div
@@ -82,55 +80,8 @@ export function RightSidebarTopActivityBar({
               {closeButton}
             </div>
           </TooltipProvider>
-        )}
-        {hasDesktopWindowChrome && (
-          <TooltipProvider delayDuration={400}>
-            <div
-              className={cn(
-                'ml-auto flex shrink-0 items-center pr-1',
-                RIGHT_SIDEBAR_HEADER_NO_DRAG_CLASS_NAME
-              )}
-            >
-              {closeButton}
-            </div>
-          </TooltipProvider>
-        )}
+        }
       </div>
-      {hasDesktopWindowChrome && (
-        <TooltipProvider delayDuration={400}>
-          <ContextMenuTrigger asChild>
-            <div
-              ref={topActivityStripRef}
-              className={RIGHT_SIDEBAR_WINDOWS_TOP_ACTIVITY_STRIP_CLASS_NAME}
-            >
-              {/* Why: custom desktop chrome has fixed native-style controls
-                  in the titlebar area; keep sidebar navigation in the
-                  sidebar body so the titlebar stays visually native
-                  instead of crowded. */}
-              <div className="flex min-w-0 flex-1 shrink">
-                {topActivityLayout.visibleItems.map((item) => (
-                  <ActivityBarButton
-                    key={item.id}
-                    item={item}
-                    active={effectiveTab === item.id}
-                    onClick={() => onSelectTab(item.id)}
-                    layout="top"
-                    statusIndicator={item.id === 'checks' ? checksStatus : null}
-                  />
-                ))}
-              </div>
-              {topActivityLayout.overflowItems.length > 0 && (
-                <TopActivityOverflowMenu
-                  items={topActivityLayout.overflowItems}
-                  activeTab={effectiveTab}
-                  onSelect={onSelectTab}
-                  checksStatus={checksStatus}
-                />
-              )}
-            </div>
-          </ContextMenuTrigger>
-        </TooltipProvider>
-      )}
       <ActivityBarPositionMenu
         currentPosition={activityBarPosition}
         onChangePosition={onChangeActivityBarPosition}

@@ -1,4 +1,4 @@
-import { ArrowUp, CircleAlert, Mic, Plus, Square } from 'lucide-react'
+import { CircleAlert, Mic, Plus, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { translate } from '@/i18n/i18n'
@@ -100,11 +100,15 @@ export function NativeChatComposerActions({
       // A press keeps focus where it was; a focused button drops it to <body> when it disables.
       onMouseDown={(event) => event.preventDefault()}
       onClick={handleCriticalAction}
-      variant={stops ? 'secondary' : 'default'}
-      size="icon"
-      className="size-8 rounded-full pointer-coarse:size-10"
+      variant={stops ? 'composerStop' : 'composerSend'}
+      size="composerAction"
+      data-native-chat-send={!stops || undefined}
+      className="pointer-coarse:min-h-10"
     >
-      {stops ? <Square className="size-3.5 fill-current" /> : <ArrowUp className="size-4" />}
+      <span aria-hidden={stops || undefined} className={stops ? 'invisible' : undefined}>
+        {translate('components.native-chat.composer.send', 'Send')}
+      </span>
+      {stops && <Square className="absolute size-3.5 fill-current" />}
     </Button>
   )
 

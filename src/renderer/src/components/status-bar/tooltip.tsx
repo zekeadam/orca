@@ -84,6 +84,14 @@ export function formatResetCreditExpiry(
 // ---------------------------------------------------------------------------
 
 export function ProviderIcon({ provider }: { provider: string }): React.JSX.Element {
+  return (
+    <span className="inline-flex shrink-0 grayscale text-muted-foreground">
+      <ProviderIdentityIcon provider={provider} />
+    </span>
+  )
+}
+
+function ProviderIdentityIcon({ provider }: { provider: string }): React.JSX.Element {
   if (provider === 'codex') {
     return <OpenAIIcon size={13} />
   }

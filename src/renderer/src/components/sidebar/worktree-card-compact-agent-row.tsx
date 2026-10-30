@@ -295,7 +295,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
         'text-muted-foreground worktree-agent-row-hover',
         hasChildDisclosure && 'worktree-agent-lineage-parent-row',
         isLineageChild && 'worktree-agent-lineage-child-row',
-        'flex h-6 items-center gap-1',
+        'flex h-8 items-center gap-1',
         isFocusedPane && 'bg-worktree-sidebar-accent',
         sendTargetStatus === 'sending' && 'cursor-progress opacity-75',
         sendTargetStatus === 'disabled' && 'cursor-default opacity-60'

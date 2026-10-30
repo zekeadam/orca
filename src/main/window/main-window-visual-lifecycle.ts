@@ -95,8 +95,8 @@ export function installMacosVisibilityRepaint(window: BrowserWindow): void {
   })
 }
 
-// Why: titlebar content center sits ~18 CSS px from top (×zoom); traffic lights are ~12px tall, so top edge = center − 6.
-export const TITLEBAR_CSS_CENTER = 18
+// Why: center the 12px traffic lights in the 40px titlebar at the current zoom.
+export const TITLEBAR_CSS_CENTER = 20
 export const TRAFFIC_LIGHT_RADIUS = 6
 export const TRAFFIC_LIGHT_X = 16
 export const MIN_WIDTH = 600

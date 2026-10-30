@@ -19,7 +19,7 @@ export default function WorktreeCreationTabStrip({
   onCancel: () => void
 }): React.JSX.Element {
   return (
-    <div className="flex h-[36px] shrink-0 items-stretch border-b border-border bg-card">
+    <div className="flex h-[40px] shrink-0 items-stretch border-b border-border bg-card">
       {reserveCollapsedSidebarHeaderSpace ? (
         // Why: collapsed sidebar chrome floats above this strip, so reserve
         // the same measured width real tabs use to keep title/cancel clear.

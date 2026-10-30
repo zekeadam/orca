@@ -149,7 +149,7 @@ export function VaultSessionRow({
     <div
       className={cn(
         'group/session-row flex w-full min-w-0 cursor-pointer flex-col border-b border-sidebar-border px-3 py-2 text-left transition-colors hover:bg-sidebar-accent/55',
-        !detailsExpanded && 'min-h-[98px]'
+        detailsExpanded ? 'bg-sidebar-accent' : 'min-h-18'
       )}
       onClick={(event) => {
         // Radix portals this row's menus out of its DOM, but React still
@@ -221,7 +221,7 @@ export function VaultSessionRow({
       </div>
       {searchHit ? <AiVaultSearchEvidence hit={searchHit} /> : null}
       {!detailsExpanded && !searchHit ? (
-        <div className="mt-0.5 min-w-0 line-clamp-2 text-[12px] leading-4 text-muted-foreground">
+        <div className="mt-0.5 min-w-0 line-clamp-1 text-[12px] leading-4 text-muted-foreground">
           {latestTurn ? (
             <>
               <span className="font-medium text-foreground/80">

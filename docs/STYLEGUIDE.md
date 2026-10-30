@@ -152,16 +152,19 @@ Use the shadcn primitives in `src/renderer/src/components/ui/` before writing an
 
 Variants in priority order:
 
-| Variant       | Use case                                                           |
-| ------------- | ------------------------------------------------------------------ |
-| `default`     | The single affirmative action in a flow.                           |
-| `secondary`   | Lower-emphasis sibling next to a `default`.                        |
-| `outline`     | Toolbar / standalone actions where a filled button feels heavy.    |
-| `ghost`       | Icon buttons, list-row triggers, anywhere chrome should disappear. |
-| `link`        | Inline text actions inside paragraphs.                             |
-| `destructive` | Delete, discard, irreversible. Never for Cancel.                   |
+| Variant        | Use case                                                           |
+| -------------- | ------------------------------------------------------------------ |
+| `default`      | The single affirmative action in a flow.                           |
+| `secondary`    | Lower-emphasis sibling next to a `default`.                        |
+| `outline`      | Toolbar / standalone actions where a filled button feels heavy.    |
+| `composerSend` | Square outlined affirmative action in the native chat composer.    |
+| `ghost`        | Icon buttons, list-row triggers, anywhere chrome should disappear. |
+| `link`         | Inline text actions inside paragraphs.                             |
+| `destructive`  | Delete, discard, irreversible. Never for Cancel.                   |
 
 Sizes: `default` (40px), `sm` (32px), `xs` (24px compact icon/chip compatibility), `lg` (40px), plus `icon`, `icon-xs`, `icon-sm`, `icon-lg`. Match the size to the surrounding row height — don't drop a `default` button into a 28px toolbar.
+
+Workspace primary badges use the quiet `workspacePrimary` badge variant. Workspace title rows and section labels use a 32px band; rows with user-enabled metadata or agent details grow to retain that content. Window title, attached tab strips and right-panel chrome share a 40px band. Active tabs and workspace rows use filled selection; focus rings remain reserved for keyboard focus.
 
 ### Other primitives in this repo
 

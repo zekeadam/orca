@@ -272,7 +272,7 @@ export default function TabGroupPanel({
           strip, and a mounted second strip would register duplicate sortables in the drag scope. */}
       {tabStrip !== 'attached' ? null : (
         <div
-          className="@container/tab-strip h-[32px] shrink-0 border-b border-border bg-card"
+          className="@container/tab-strip h-10 shrink-0 border-b border-border bg-card"
           data-tab-group-strip-id={groupId}
           data-terminal-focus-release-surface="true"
           data-worktree-id={worktreeId}

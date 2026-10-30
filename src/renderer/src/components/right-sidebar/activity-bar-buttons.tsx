@@ -72,7 +72,7 @@ export function TopActivityOverflowMenu({
         <button
           type="button"
           className={cn(
-            'relative flex h-[36px] w-8 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+            'relative flex h-[40px] w-8 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
             RIGHT_SIDEBAR_HEADER_NO_DRAG_CLASS_NAME
           )}
           aria-label={
@@ -144,12 +144,15 @@ export function ActivityBarButton({
         <button
           type="button"
           className={cn(
-            'relative flex shrink-0 items-center justify-center transition-colors',
+            'relative flex shrink-0 items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
             RIGHT_SIDEBAR_HEADER_NO_DRAG_CLASS_NAME,
-            isTop ? 'h-[36px] w-9' : 'w-10 h-10',
-            active ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
+            isTop ? 'h-[40px] w-9' : 'w-10 h-10',
+            active
+              ? 'bg-accent text-accent-foreground'
+              : 'text-muted-foreground/60 hover:text-muted-foreground'
           )}
           onClick={onClick}
+          aria-current={active ? 'page' : undefined}
           aria-label={activityItemAriaLabel(item, effectiveStatus)}
         >
           <Icon size={isTop ? 16 : 18} />
@@ -162,13 +165,6 @@ export function ActivityBarButton({
                 STATUS_DOT_COLOR[effectiveStatus] ?? 'bg-muted-foreground'
               )}
             />
-          )}
-
-          {active && isTop && (
-            <div className="absolute bottom-0 left-[25%] right-[25%] h-[2px] bg-foreground rounded-t" />
-          )}
-          {active && !isTop && (
-            <div className="absolute right-0 top-[25%] bottom-[25%] w-[2px] bg-foreground rounded-l" />
           )}
         </button>
       </TooltipTrigger>

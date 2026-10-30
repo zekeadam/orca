@@ -19,6 +19,12 @@ Rebuild modified launch-policy code before running an app; stale build wrappers 
 
 Use the `$electron` skill and Playwright CDP for rendered Orca UI checks. Do not use computer-use for Orca UI validation.
 
+The Electron guide is bundled with the repo-local agent-browser CLI. Read it without installing a skill:
+`pnpm exec agent-browser skills get core`, then `pnpm exec agent-browser skills get electron`.
+On Windows the direct equivalent is `node_modules/.bin/agent-browser.cmd skills get core`
+and `node_modules/.bin/agent-browser.cmd skills get electron`. The background/no-focus rules above
+override generic guide advice; use an isolated hidden instance, never quit the user's running app.
+
 # Style
 
 ## Reuse Before Reimplementing

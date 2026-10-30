@@ -145,7 +145,7 @@ export function AppWorkspaceShell(props: {
                   >
                     {titlebarLeftControls}
                   </div>
-                  {/* Why: flex-1/min-h-0 slot needed under the fixed 36px header, else the sidebar collapses to content height and loses its scroll viewport. */}
+                  {/* Why: flex-1/min-h-0 slot needed under the fixed 40px header, else the sidebar collapses to content height and loses its scroll viewport. */}
                   <div className="flex min-h-0 flex-1">
                     <WorktreeSidebar layout={layout} scrollRefs={sidebarScrollRefs} />
                   </div>
@@ -155,17 +155,17 @@ export function AppWorkspaceShell(props: {
               )
             ) : null}
             <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">
-              {/* Why: automations/artifacts own their page headers; the stacked titlebar would be an empty 36px stripe. */}
+              {/* Why: automations/artifacts own their page headers; the stacked titlebar would be an empty 40px stripe. */}
               {layout.stackedSidebarOpen &&
               layout.activeView !== 'automations' &&
               layout.activeView !== 'artifacts' ? (
                 <div className="titlebar">{titlebarMainStrip}</div>
               ) : null}
               <div className="relative flex flex-1 min-w-0 min-h-0 overflow-hidden">
-                {/* Why: match the RightSidebar header's 36px/top-0 so the toggle's vertical center is identical open vs closed — else the icon jitters. */}
+                {/* Why: match the RightSidebar header's 40px/top-0 so the toggle's vertical center is identical open vs closed — else the icon jitters. */}
                 {layout.workspaceChromeActive && !layout.rightSidebarOpen && (
                   <div
-                    className="absolute top-0 z-10 flex items-center h-[36px]"
+                    className="absolute top-0 z-10 flex items-center h-[40px]"
                     style={
                       {
                         // Why: --window-controls-width keeps the toggle clear of the fixed window-controls overlay (138px on custom chrome, 0px otherwise); no internal spacer — one would cover the pane-actions Ellipsis button with an unclickable div.

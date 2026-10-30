@@ -188,7 +188,7 @@ export function AiVaultVirtualRow({
 
   return (
     <div
-      ref={measureElement}
+      ref={(node) => measureElement(node)}
       data-index={index}
       data-selected={selected ? 'true' : undefined}
       className={cn(

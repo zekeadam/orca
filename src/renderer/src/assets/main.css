@@ -976,8 +976,8 @@ html.native-shell .app-layout {
 }
 
 .titlebar {
-  height: 36px;
-  min-height: 36px;
+  height: 40px;
+  min-height: 40px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -990,11 +990,10 @@ html.native-shell .app-layout {
 /* Why: workspace view still needs a full titlebar-height strip above the
    sidebar so the native macOS traffic lights and sidebar chrome sit in the
    same vertical band they use in settings/landing. The center and right
-   workspace columns are offset separately to align with this 36px baseline
-   (4px drag strip + 32px tab row). */
+   workspace tab rows share this 40px band. */
 .titlebar-left {
-  height: 36px;
-  min-height: 36px;
+  height: 40px;
+  min-height: 40px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1003,14 +1002,7 @@ html.native-shell .app-layout {
   /* Why: in workspace view this strip sits directly above the worktree
      sidebar — match its surface so the left column reads as one panel. */
   background: var(--worktree-sidebar);
-  /* Why: draw the divider via inset shadow instead of border-bottom so the
-     flex content area spans the full 36px. With border-bottom + border-box,
-     the content area shrinks to 35px and flex-centered controls land at
-     y=17.5, a half-pixel below the native traffic-light center at y=18
-     (set via setWindowButtonPosition in createMainWindow.ts). The shadow
-     paints the same 1px seam without stealing layout space, so the sidebar
-     toggle, agent badge, and back/forward arrows align pixel-perfectly
-     with the traffic lights. */
+  /* Keep controls centered in the full band, including macOS traffic lights. */
   box-shadow: inset 0 -1px 0 var(--border);
   -webkit-app-region: drag;
   user-select: none;
@@ -1036,7 +1028,7 @@ html.native-shell .app-layout {
 }
 
 /* Why: small identity anchor on desktop custom titlebars where native window
-   chrome is hidden. Sized to sit comfortably in the 36px titlebar with a
+   chrome is hidden. Sized to sit comfortably in the 40px titlebar with a
    little horizontal breathing room. The SVG fill is white; light mode inverts
    it to black so it reads on the light titlebar background. */
 .titlebar-logo {
@@ -1062,7 +1054,7 @@ html.native-shell .app-layout {
   z-index: 9999;
   display: flex;
   flex-direction: row;
-  height: 36px;
+  height: 40px;
   -webkit-app-region: no-drag;
 }
 
@@ -1071,7 +1063,7 @@ html.native-shell .app-layout {
   align-items: center;
   justify-content: center;
   width: 46px;
-  height: 36px;
+  height: 40px;
   background: transparent;
   border: none;
   color: var(--muted-foreground);
@@ -1132,7 +1124,7 @@ html.native-shell .app-layout {
 }
 
 /* Why: in side-bar activity-bar mode the icon strip sits flush against the
-   right window edge. The fixed-position window-controls overlay (height 36px,
+   right window edge. The fixed-position window-controls overlay (height 40px,
    width 138px) covers the top-right corner when custom desktop chrome is
    active, so the topmost sidebar icons are unreachable without this offset. */
 .side-activity-bar-windows-inset {
@@ -1447,34 +1439,17 @@ html.native-shell .app-layout {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--worktree-sidebar-ring) 30%, transparent);
 }
 
-/* Why: the brighter border carries the selected state; a translucent wash keeps
-   card text legible instead of lifting the surface toward the foreground color. */
+/* Filled selection keeps the workspace list quiet without a persistent focus halo. */
 [data-worktree-card-surface][data-worktree-card-active='primary'] {
-  border-color: color-mix(in srgb, var(--worktree-sidebar-border) 40%, transparent);
-  background: color-mix(in srgb, var(--worktree-sidebar-foreground) 8%, transparent);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--worktree-sidebar-foreground) 4%, transparent);
-}
-
-.dark [data-worktree-card-surface][data-worktree-card-active='primary'] {
-  border-color: color-mix(
-    in srgb,
-    var(--worktree-sidebar-foreground) 18%,
-    var(--worktree-sidebar-border)
-  );
-  background: color-mix(in srgb, var(--worktree-sidebar-foreground) 10%, transparent);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--worktree-sidebar-foreground) 3%, transparent);
+  border-color: transparent;
+  background: var(--worktree-sidebar-accent);
+  box-shadow: none;
 }
 
 [data-worktree-card-surface][data-worktree-card-active='secondary'] {
-  border-color: color-mix(in srgb, var(--sidebar-ring) 25%, transparent);
-  background: color-mix(in srgb, var(--sidebar-accent) 45%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sidebar-ring) 15%, transparent);
-}
-
-.dark [data-worktree-card-surface][data-worktree-card-active='secondary'] {
-  border-color: color-mix(in srgb, var(--sidebar-ring) 28%, transparent);
-  background: color-mix(in srgb, var(--sidebar-accent) 34%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sidebar-ring) 18%, transparent);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--worktree-sidebar-accent) 70%, transparent);
+  box-shadow: none;
 }
 
 /* Why: a sleeping card dims by mixing the theme's own text tokens toward the

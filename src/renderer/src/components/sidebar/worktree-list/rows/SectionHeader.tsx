@@ -237,7 +237,7 @@ export function renderWorktreeSectionHeaderRow(args: {
         className={cn(
           // Why: no row-level grab — only the title surface below shows the hand;
           // actions use cursor-pointer so … / + never look reorderable.
-          'group relative flex h-7 w-full items-center gap-1.5 pr-2 text-left transition-all',
+          'group relative flex h-8 w-full items-center gap-1.5 pr-2 text-left transition-all',
           !(isDraggableRepoHeader || isDraggableProjectGroupHeader) && 'cursor-pointer',
           ctx.highlightedRevealRowKey === row.key &&
             'rounded-md bg-worktree-sidebar-accent ring-1 ring-worktree-sidebar-ring/50',
@@ -333,7 +333,9 @@ export function renderWorktreeSectionHeaderRow(args: {
 
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-1.5">
-              <div className="min-w-0 truncate text-[13px] font-semibold leading-none">{label}</div>
+              <div className="min-w-0 truncate text-[13px] font-normal leading-none text-muted-foreground">
+                {label}
+              </div>
               <RepoForkIndicator upstream={row.repo?.upstream} />
               <FolderPathStatusIndicator status={projectGroupPathStatus} />
               {isRepoHeader ? <RepoScanUnavailableIndicator repo={row.repo!} /> : null}
