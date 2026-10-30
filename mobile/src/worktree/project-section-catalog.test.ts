@@ -1,3 +1,7 @@
+import { createProjectGroup } from '../../../src/shared/project-groups'
+import { NO_WORKSPACE_ROW_FILTERS } from '../../../src/shared/workspace-view/workspace-row-filters'
+import { projectSectionsRead } from './project-sections-operations'
+import { buildSections } from './workspace-list-sections'
 import { hostRepoCatalogSchema } from '../host-screen/host-screen-reply-schema'
 import { desktopSectionRepo } from '../host-screen/use-host-repo-metadata'
 import { describe, expect, it } from 'vitest'
@@ -90,5 +94,73 @@ describe('installed desktop legacy group metadata', () => {
       projectGroupId: undefined,
       projectGroupOrder: undefined
     })
+  })
+})
+
+describe('observed older desktop envelope with anonymized IDs and paths', () => {
+  const rows = Array.from({ length: 15 }, (_, index) => ({
+    id: `r${index}`,
+    displayName: `Project ${index}`,
+    path: `/repos/r${index}`
+  }))
+  const groups = ['Focus', 'Other', 'Z-stuff'].map((name, index) => ({
+    ...createProjectGroup({ name, createdFrom: 'manual', tabOrder: index }),
+    id: `g${index}`
+  }))
+  function oldCatalog() {
+    const result = projectSectionsRead.interpret({
+      id: 'read',
+      ok: true,
+      result: { catalog: { repos: rows, projects: [], setups: [], projectOrderBy: 'manual' } }
+    })
+    if (!result.accepted || !result.value)
+      throw new Error('Observed legacy catalog must remain readable')
+    return result.value
+  }
+  it('recovers all14 memberships across4/4/6 groups from repo.list when served15row catalog omits metadata', () => {
+    const listed = hostRepoCatalogSchema
+      .parse({
+        repos: rows.map((row, index) => ({
+          ...row,
+          projectGroupId: index < 14 ? `g${index < 4 ? 0 : index < 8 ? 1 : 2}` : null,
+          projectGroupOrder: index
+        }))
+      })
+      .map(desktopSectionRepo)
+    const catalog = buildProjectSectionCatalog(oldCatalog(), listed, null, 'manual', groups)
+    const sections = buildSections(
+      [],
+      'manual',
+      NO_WORKSPACE_ROW_FILTERS,
+      '',
+      'repo',
+      new Set(),
+      catalog
+    )
+    expect(
+      sections
+        .filter((section) => section.key.startsWith('project-group:'))
+        .map((section) => [section.title, section.count])
+    ).toEqual([
+      ['Focus', 4],
+      ['Other', 4],
+      ['Z-stuff', 6]
+    ])
+    expect(catalog.repos.filter((row) => row.projectGroupId)).toHaveLength(14)
+    expect(sections.filter((section) => section.repo)).toHaveLength(15)
+  })
+  it('keeps every served repo visible if the older host refuses repo.list metadata', () => {
+    const catalog = buildProjectSectionCatalog(oldCatalog(), [], null, 'manual', groups)
+    const sections = buildSections(
+      [],
+      'manual',
+      NO_WORKSPACE_ROW_FILTERS,
+      '',
+      'repo',
+      new Set(),
+      catalog
+    )
+    expect(sections.filter((section) => section.repo)).toHaveLength(15)
+    expect(catalog.repos.every((row) => row.projectGroupId === undefined)).toBe(true)
   })
 })
