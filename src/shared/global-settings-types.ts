@@ -1,5 +1,4 @@
 import type { GlobalSettingsBase } from './global-settings-base'
-import type { NativeChatPromptPreset } from './native-chat-prompt-presets'
 import type { ExecutionHostId } from './execution-host'
 import type { OrcaWorkspaceLayout } from './orca-workspace-layout'
 import type { GitHubProjectSettings } from './github/project-types'
@@ -50,7 +49,6 @@ export type { WorktreeVisibilityDefaults } from './repo-types'
 export type MiniMaxEndpoint = 'overseas' | 'cn'
 
 export type GlobalSettings = GlobalSettingsBase & {
-  nativeChatPromptPresets?: NativeChatPromptPreset[]
   workspaceDir: string
   /** Host-owned defaults used when a repository has no explicit visibility override. */
   worktreeVisibilityDefaults?: WorktreeVisibilityDefaults
@@ -205,6 +203,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   httpProxyUrl?: string
   /** Optional semicolon/comma/newline-separated bypass rules for httpProxyUrl. */
   httpProxyBypassRules?: string
+  /** Optional mirror of nodejs.org/dist for the Node runtime Orca installs on SSH and WSL servers. */
+  nodeDistMirrorUrl?: string
   /** Why: corporate TLS-intercepting proxies can break HTTP/2 downloads; opt-in Chromium process-wide HTTP/1.1 switch. */
   electronHttp1CompatibilityMode?: boolean
   /** Opt-in in-app browsing (isolated guest surface); default keeps links opening in the system browser. */
@@ -240,6 +240,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   nativeChatSessionOptions?: PersistedNativeChatSessionOptions
   /** New chats' permission mode, for agents whose chats offer modes; seeded once from Agent Permissions. */
   nativeChatPermissionMode?: AgentChatPermissionMode
+  /** Per-agent new-chat defaults chosen alongside that agent's terminal permission mode. */
+  agentNativeChatPermissionModes?: Partial<Record<TuiAgent, AgentChatPermissionMode>>
   /** Extra launcher rows for the worktree "Open in" submenu. VS Code is always shown first. */
   openInApplications?: OpenInApplication[]
   /** Deprecated: migration/backward-compat only. Use PersistedUIState.rightSidebarOpen. */

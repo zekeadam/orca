@@ -1,3 +1,4 @@
+import { normalizeAgentNativeChatPermissionModes } from '../../../shared/agent-chat-permission-mode'
 import { normalizeNativeChatAppearanceSettings } from '../../../shared/native-chat-appearance-settings'
 import { normalizeAppearanceColors } from '../../../shared/appearance-colors'
 import type { GlobalSettings } from '../../../shared/global-settings-types'
@@ -32,16 +33,11 @@ import {
   normalizeMobilePairingCustomAddresses
 } from '../../../shared/mobile-pairing-custom-address'
 import {
-  mergeLegacyCommitMessageAiIntoSourceControlAi,
-  normalizeSourceControlAiSettings,
-  projectSourceControlAiToLegacyCommitMessageAi
-} from '../../../shared/source-control-ai'
-import {
   PROTECTED_SECRET_SLOT,
   type ProtectedSecretPersistence
 } from '../../protected-secret-persistence'
 import { normalizeNotificationSettings } from './onboarding-normalization'
-import { retireLegacyInstructionsForClearedTextActionRecipes } from './source-control-settings'
+import { normalizeSourceControlSettingsUpdate } from './source-control-settings'
 import {
   buildWorkspaceDirHistoryForUpdate,
   stripRetiredGlobalSettings
@@ -88,6 +84,11 @@ export function updateSettings(
     sanitizedUpdates.nestedWorkerMaxDepth = resolveNestedWorkerMaxDepth({
       nestedWorkerMaxDepth: updates.nestedWorkerMaxDepth
     })
+  }
+  if ('nativeChatPermissionMode' in updates || 'agentNativeChatPermissionModes' in updates) {
+    sanitizedUpdates.agentNativeChatPermissionModes = normalizeAgentNativeChatPermissionModes(
+      updates.agentNativeChatPermissionModes
+    )
   }
   if ('nativeChatAppearance' in updates) {
     sanitizedUpdates.nativeChatAppearance = normalizeNativeChatAppearanceSettings(
@@ -250,26 +251,7 @@ export function updateSettings(
     sanitizedUpdates.telemetry !== undefined
       ? { ...operations.state.settings.telemetry, ...sanitizedUpdates.telemetry }
       : operations.state.settings.telemetry
-  if ('sourceControlAi' in sanitizedUpdates) {
-    sanitizedUpdates.sourceControlAi = retireLegacyInstructionsForClearedTextActionRecipes(
-      sanitizedUpdates.sourceControlAi,
-      operations.state.settings
-    )
-    const normalizedSourceControlAi = normalizeSourceControlAiSettings(
-      sanitizedUpdates.sourceControlAi,
-      operations.state.settings.commitMessageAi
-    )
-    sanitizedUpdates.sourceControlAi = normalizedSourceControlAi
-    sanitizedUpdates.commitMessageAi = projectSourceControlAiToLegacyCommitMessageAi(
-      normalizedSourceControlAi,
-      operations.state.settings.commitMessageAi
-    )
-  } else if ('commitMessageAi' in sanitizedUpdates) {
-    sanitizedUpdates.sourceControlAi = mergeLegacyCommitMessageAiIntoSourceControlAi(
-      operations.state.settings.sourceControlAi,
-      sanitizedUpdates.commitMessageAi
-    )
-  }
+  normalizeSourceControlSettingsUpdate(sanitizedUpdates, operations.state.settings)
   const previousSettings = operations.state.settings
   operations.state.settings = {
     ...operations.state.settings,

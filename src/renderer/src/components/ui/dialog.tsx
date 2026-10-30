@@ -1,5 +1,6 @@
 'use client'
 
+import { SECURITY_SURFACE_CLASS } from './security-surface'
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { Minus, XIcon } from 'lucide-react'
@@ -51,7 +52,9 @@ const dialogContentSurfaceVariants = cva('', {
       'feature-tip':
         'gap-0 bg-[color-mix(in_srgb,var(--foreground)_8%,var(--background))] p-0 dark:bg-[color-mix(in_srgb,var(--foreground)_16%,var(--background))]',
       /** Edge to edge, for an embedded panel that brings its own header and padding. */
-      panel: 'gap-0 p-0'
+      panel: 'gap-0 p-0',
+      /** Trust, consent and provenance decisions: host-owned tokens a plugin theme cannot restyle. */
+      security: SECURITY_SURFACE_CLASS
     }
   },
   defaultVariants: { surface: 'default' }
@@ -91,6 +94,7 @@ function DialogContent({
   closeButtonVariant = 'close',
   surface,
   size,
+  scrollable = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> &
   VariantProps<typeof dialogContentSurfaceVariants> & {
@@ -99,6 +103,8 @@ function DialogContent({
     closeButtonVariant?: 'close' | 'minimize'
     /** `compact` is a short confirmation's width, like the close prompts. */
     size?: 'default' | 'compact'
+    /** The whole dialog scrolls within the viewport instead of growing past it. */
+    scrollable?: boolean
   }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -116,6 +122,7 @@ function DialogContent({
         className={cn(
           'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] grid-cols-[minmax(0,1fr)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-border bg-popover p-6 text-foreground duration-200 outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg data-[size=compact]:sm:max-w-sm',
           dialogContentSurfaceVariants({ surface }),
+          scrollable && 'max-h-[calc(100vh-3rem)] overflow-y-auto scrollbar-sleek',
           className
         )}
         {...props}

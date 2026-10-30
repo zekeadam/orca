@@ -1,3 +1,4 @@
+import type { NativeChatPromptPreset } from './native-chat-prompt-presets'
 import type { ClaudeAccountSwitchSettings } from './claude-account-switch-settings'
 import type { AppearanceColors } from './appearance-colors'
 import type { AppFontSettings } from './app-font-settings'
@@ -9,4 +10,4 @@ export type GlobalSettingsBase = NativeChatGlobalSettings &
   AppearanceColors &
   AppFontSettings &
   WorktreeDeletionPreferences &
-  ClaudeAccountSwitchSettings
+  ClaudeAccountSwitchSettings & { nativeChatPromptPresets?: NativeChatPromptPreset[] }

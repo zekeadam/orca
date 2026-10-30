@@ -18,10 +18,12 @@ import {
   RELAY_HOST_CAPABILITY_IDLE_REGIONAL_REHOME,
   RELAY_PROTOCOL_LIMITS,
   RELAY_CLOSE_CODE,
+  RELAY_PHONE_CLOSE_REASON,
   type IdleRegionalRehomeCommit,
   type IdleRegionalRehomeDeferReason,
   type IdleRegionalRehomeResult,
   type RelayHostCloseReason,
+  type RelayPhoneCloseReason,
   type RelayRegion
 } from '@orca-cloud/relay-contract'
 import nacl from 'tweetnacl'
@@ -37,14 +39,16 @@ import { CellSeatLog, type CellSeatChange, type CellSeatFeedPage } from './cell-
 import { isRelayDatabaseTransientError } from './database.js'
 import { printableCloseReason } from './control-close-reason-text.js'
 import { ControlRenewalBatch } from './control-renewal-batch.js'
-import { RelayCredentialStore, type CredentialReservation } from './credential-store.js'
+import { RelayCredentialStore, RelayStoreError, type CredentialReservation } from './credential-store.js'
 import { HostCloseReasonMemory } from './host-close-reason-memory.js'
-import { PhoneAcceptLog } from './phone-accept-log.js'
+import { MemoryResumeConfirmations } from './memory-resume-confirmations.js'
+import { PhoneConnectionLog, type PhoneDatabaseCause } from './phone-connection-log.js'
 import {
   postProofCloseCause,
   PostProofCloseLog,
   type PostProofCloseCause
 } from './post-proof-close-log.js'
+import { describeRelayFailure, relayErrorSlug } from './relay-error-redaction.js'
 import { relayHostLogDigest } from './relay-host-log-digest.js'
 import type { RelayTokenClaims } from './relay-token-verifier.js'
 import {
@@ -303,7 +307,8 @@ export class HostSessionRegistry {
   private readonly drainSentHosts = new Set<string>()
   private readonly seatLog: CellSeatLog
   private readonly postProofCloses: PostProofCloseLog
-  private readonly phoneAccepts: PhoneAcceptLog
+  private readonly phoneConnections: PhoneConnectionLog
+  private readonly memoryConfirmations: MemoryResumeConfirmations
   // Seat key -> the demoted control socket. Its own set, not drainSentHosts: it ends with
   // that socket (close, rebind or a new join), so a later booking here is a fresh seat.
   private readonly demotedSeats = new Map<string, WebSocket>()
@@ -448,7 +453,10 @@ export class HostSessionRegistry {
   ) {
     this.seatLog = new CellSeatLog(undefined, now)
     this.postProofCloses = new PostProofCloseLog(observer)
-    this.phoneAccepts = new PhoneAcceptLog(config.cellId)
+    this.phoneConnections = new PhoneConnectionLog(config.cellId)
+    this.memoryConfirmations = new MemoryResumeConfirmations(store, now, (error) =>
+      this.recordRenewalFailure(error)
+    )
   }
 
   // Reserve mode is only ever a cell's, and only while its applied switch says so.
@@ -857,9 +865,8 @@ export class HostSessionRegistry {
       } catch (error) {
         // Never the invite path: an unread device is not a missing one.
         capacityReservation?.release()
-        this.phoneAccepts.databaseError(
-          isRelayDatabaseTransientError(error) ? 'database_transient' : 'error'
-        )
+        this.observer.recordPhoneAcceptDatabaseError?.()
+        this.phoneConnections.databaseError(databaseCause(error))
         this.rejectClient(socket, RELAY_CLOSE_CODE.DRAINING)
         return
       }
@@ -976,7 +983,13 @@ export class HostSessionRegistry {
       capacityReservation?.release()
       this.failReservationBestEffort(reservation)
       if (credentialActivityId) this.releaseActivityBestEffort(identity, credentialActivityId)
-      this.rejectClient(socket, RELAY_CLOSE_CODE.HOST_OFFLINE)
+      this.recordAttachDeadline(session, reservation)
+      // OTA phones redial this cell once, quickly: the control is still seated here.
+      this.rejectClient(
+        socket,
+        RELAY_CLOSE_CODE.HOST_OFFLINE,
+        RELAY_PHONE_CLOSE_REASON.HOST_ATTACH_TIMEOUT
+      )
     }, RELAY_PROTOCOL_LIMITS.hostAttachDeadlineMs)
     const pending: PendingConnection = {
       connId,
@@ -1070,9 +1083,9 @@ export class HostSessionRegistry {
         relayHostId: reservation.relayHostId
       })
       elsewhere = row !== null && row.cellId !== this.config.cellId
-      if (row?.cellId === this.config.cellId) this.phoneAccepts.missRowNamesHere(reservation.relayHostId)
+      if (row?.cellId === this.config.cellId) this.phoneConnections.missRowNamesHere(reservation.relayHostId)
     } catch (error) {
-      this.phoneAccepts.missReadError(isRelayDatabaseTransientError(error) ? 'database_transient' : 'error')
+      this.phoneConnections.missReadError(databaseCause(error))
       elsewhere = true
     }
     if (elsewhere) {
@@ -1151,12 +1164,16 @@ export class HostSessionRegistry {
           cellId: this.config.cellId
         })
       }
-      await this.store.recordConnectionBasis({
-        ...pending.reservation,
-        basisConnId: connId,
-        owningControlGeneration: session.generation,
-        deadline: basisDeadline
-      })
+      if (pending.phonePath === 'memory') {
+        this.openMemoryBasis(pending, connId, session.generation, basisDeadline)
+      } else {
+        await this.store.recordConnectionBasis({
+          ...pending.reservation,
+          basisConnId: connId,
+          owningControlGeneration: session.generation,
+          deadline: basisDeadline
+        })
+      }
     } catch {
       session.activeConnIds.delete(connId)
       await this.store.failReservation(pending.reservation)
@@ -1179,7 +1196,7 @@ export class HostSessionRegistry {
     ) {
       session.activeConnIds.delete(connId)
       pending.capacityReservation?.release()
-      this.deactivateBasisBestEffort(connId)
+      this.closeBasis(pending, connId)
       this.failReservationBestEffort(pending.reservation)
       if (spliceActivityId) this.releaseActivityBestEffort(identity, spliceActivityId)
       if (pending.credentialActivityId) {
@@ -1196,7 +1213,7 @@ export class HostSessionRegistry {
       onClose: () => {
         session.activeConnIds.delete(connId)
         session.activeSplices.delete(connId)
-        this.deactivateBasisBestEffort(connId)
+        this.closeBasis(pending, connId)
         if (spliceActivityId) this.releaseActivityBestEffort(identity, spliceActivityId)
         if (pending.credentialActivityId) {
           this.releaseActivityBestEffort(identity, pending.credentialActivityId)
@@ -1262,13 +1279,14 @@ export class HostSessionRegistry {
       basis: nonNegativeMs(helloAt - attachedAt)
     }
     const totalMs = nonNegativeMs(helloAt - pending.timing.startedAt)
-    this.observer.recordClientAcceptCompleted?.({ totalMs, stageMs })
+    this.observer.recordClientAcceptCompleted?.({ totalMs, stageMs, phonePath: pending.phonePath })
     console.log(
       JSON.stringify({
         event: 'orca_relay_client_accept_completed',
         ...this.logIdentity(),
         ...this.sessionPlacementLogFields(session),
         credentialKind: pending.reservation.credentialKind,
+        phonePath: pending.phonePath,
         stageMs,
         totalMs,
         relayHostIdDigest: relayHostLogDigest(session.relayHostId)
@@ -2478,12 +2496,22 @@ export class HostSessionRegistry {
       }
       if (type === 'device-resume-confirm') {
         const request = DeviceResumeConfirmSchema.parse(payload(raw, type))
-        const result = await this.store.confirmResume({
-          ...identity,
-          ...request,
-          owningControlGeneration: session.generation
-        })
-        await this.assignments.releaseActivity(identity, `confirmation:${request.basisConnId}`)
+        const confirm = { ...identity, ...request, owningControlGeneration: session.generation }
+        const phonePath = this.memoryConfirmations.owns(confirm) ? 'memory' : 'db'
+        let result
+        try {
+          result =
+            phonePath === 'memory'
+              ? await this.memoryConfirmations.confirm(confirm)
+              : await this.store.confirmResume(confirm)
+        } catch (error) {
+          this.recordConfirmFailure(error, phonePath)
+          throw error
+        }
+        // After a committed confirm: a failed release is not a failed confirm.
+        if (phonePath === 'db') {
+          await this.assignments.releaseActivity(identity, `confirmation:${request.basisConnId}`)
+        }
         send(session.socket, 'device-resume-confirmed', result)
         return
       }
@@ -2501,28 +2529,51 @@ export class HostSessionRegistry {
           ? String(candidate.reqId)
           : undefined
       })()
-      this.sendControlError(
-        session,
-        reqId,
-        error instanceof Error ? error.message : 'control_operation_failed'
-      )
+      this.sendControlError(session, reqId, controlErrorCode(type, error))
     }
+  }
+
+  private recordRenewalFailure(error: unknown): void {
+    this.observer.recordResumeRenewalFailure?.()
+    this.phoneConnections.renewalFailed(databaseCause(error))
+  }
+
+  // Never the raw message as a key: pg errors can carry the database URL.
+  private recordConfirmFailure(error: unknown, phonePath: 'db' | 'memory'): void {
+    const code = error instanceof RelayStoreError ? error.code : databaseCause(error)
+    this.observer.recordResumeConfirmFailure?.(code)
+    this.phoneConnections.confirmFailed(code, phonePath)
+  }
+
+  private recordAttachDeadline(session: HostSession, reservation: CredentialReservation): void {
+    const now = this.now()
+    const msSinceLastPong = now - session.lastPongAt
+    this.observer.recordPhoneAttachDeadline?.()
+    this.phoneConnections.attachDeadline(session.relayHostId, {
+      credentialKind: reservation.credentialKind,
+      msSinceLastPong,
+      pingOutstanding: session.pendingPingAt !== null,
+      controlAgeMs: now - session.controlWiredAt,
+      controlRttMs: session.controlRttSamplesMs.at(-1) ?? null,
+      pong: msSinceLastPong > RELAY_PROTOCOL_LIMITS.controlPingIntervalMs ? 'stale' : 'fresh'
+    })
   }
 
   private sendControlError(session: HostSession, reqId: string | undefined, code: string): void {
     if (session.socket) send(session.socket, 'control-error', { ...(reqId ? { reqId } : {}), code })
   }
 
-  // hostCloseReason rides the WebSocket close reason, never relay-hello: every
-  // shipped phone parses relay-hello with a strict schema that rejects an
-  // unknown key, and none of them read the close reason at all.
+  // closeReason rides the WebSocket close reason, never relay-hello: every shipped
+  // phone parses relay-hello with a strict schema that rejects an unknown key, and
+  // ignores a close reason it does not know.
   private rejectClient(
     socket: WebSocket,
     code: number,
-    hostCloseReason?: RelayHostCloseReason | null
+    closeReason?: RelayHostCloseReason | RelayPhoneCloseReason | null
   ): void {
+    this.observer.recordPhoneRejection?.(code)
     send(socket, 'relay-hello', { ok: false, code })
-    closeRelayWebSocket(socket, code, hostCloseReason ?? 'relay connection rejected')
+    closeRelayWebSocket(socket, code, closeReason ?? 'relay connection rejected')
   }
 
   private releaseControlActivity(session: HostSession): void {
@@ -2549,6 +2600,34 @@ export class HostSessionRegistry {
     })
   }
 
+  // A memory resume's basis is the cell's own record; every other basis is a Postgres row.
+  private openMemoryBasis(
+    pending: PendingConnection,
+    connId: string,
+    owningControlGeneration: number,
+    deadline: number
+  ): void {
+    const { reservation } = pending
+    if (reservation.acceptedCredentialVersion === undefined || reservation.acceptedAs === undefined) {
+      throw new Error('memory basis needs an accepted resume credential')
+    }
+    this.memoryConfirmations.open({
+      basisConnId: connId,
+      userId: reservation.userId,
+      relayHostId: reservation.relayHostId,
+      relayDeviceId: reservation.relayDeviceId,
+      acceptedCredentialVersion: reservation.acceptedCredentialVersion,
+      acceptedAs: reservation.acceptedAs,
+      owningControlGeneration,
+      deadline
+    })
+  }
+
+  private closeBasis(pending: PendingConnection, connId: string): void {
+    if (pending.phonePath === 'memory') this.memoryConfirmations.close(connId)
+    else this.deactivateBasisBestEffort(connId)
+  }
+
   private deactivateBasisBestEffort(connId: string): void {
     void this.store.deactivateBasis(connId).catch(() => {
       console.warn('[orca-relay] basis deactivation deferred to credential cleanup')
@@ -2557,3 +2636,16 @@ export class HostSessionRegistry {
 }
 
 export type RelayIdentityKey = { userId: string; relayHostId: string }
+
+// Intentional throws are store codes or slugs; anything else could carry the database URL.
+function controlErrorCode(type: string, error: unknown): string {
+  if (error instanceof RelayStoreError) return error.code
+  const slug = relayErrorSlug(error)
+  if (slug) return slug
+  console.warn(`[orca-relay] control ${type} failed: ${describeRelayFailure(error)}`)
+  return isRelayDatabaseTransientError(error) ? 'database_transient' : 'control_operation_failed'
+}
+
+function databaseCause(error: unknown): PhoneDatabaseCause {
+  return isRelayDatabaseTransientError(error) ? 'database_transient' : 'error'
+}
