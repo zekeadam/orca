@@ -98,6 +98,7 @@ export type Section = {
   key: string
   title: string
   icon?: 'pin'
+  projectGroupDepth?: number
   /** Under Project grouping, the repo whose colour and icon the header shows, as on the desktop. */
   repo?: SectionRepo
   /** The header's own count from a feed-built list, which a collapsed section still shows. */

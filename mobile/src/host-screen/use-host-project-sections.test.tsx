@@ -6,6 +6,7 @@ const request = vi.hoisted(() => vi.fn())
 
 vi.mock('../worktree/project-sections-operations', () => ({
   projectSectionsRead: { request },
+  hostProjectGroupsRead: { request: vi.fn().mockResolvedValue(null) },
   readServedProjectSections: (reply: { catalog?: unknown } | null) => ({
     kind: 'answered',
     value: reply?.catalog ?? null

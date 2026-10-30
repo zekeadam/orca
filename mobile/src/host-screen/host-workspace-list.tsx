@@ -189,7 +189,12 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
             return (
               <>
                 <Pressable
-                  style={styles.sectionHeader}
+                  style={[
+                    styles.sectionHeader,
+                    section.projectGroupDepth
+                      ? { marginLeft: section.projectGroupDepth * 12 }
+                      : null
+                  ]}
                   onPress={() => settings.toggleCollapsed(section.key)}
                 >
                   {isCollapsed ? (
