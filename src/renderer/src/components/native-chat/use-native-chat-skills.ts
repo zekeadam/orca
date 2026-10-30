@@ -1,12 +1,11 @@
+import { isNativeChatSkillForAgent } from '../../../../shared/native-chat-skill-visibility'
+export { isNativeChatSkillForAgent } from '../../../../shared/native-chat-skill-visibility'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '../../store'
 import type { AgentType } from '../../../../shared/agent-status-types'
 import type { DiscoveredSkill, SkillDiscoveryResult } from '../../../../shared/skills'
-import {
-  getNativeChatAgentProfile,
-  readsSkillSource
-} from '../../../../shared/native-chat-agent-profiles'
+import { getNativeChatAgentProfile } from '../../../../shared/native-chat-agent-profiles'
 import { callRuntimeRpc } from '@/runtime/runtime-rpc-client'
 import { emitNativeChatSkillDiscovery } from '@/lib/native-chat-telemetry'
 import {
@@ -24,8 +23,8 @@ export {
 // The host scan budget honored by runtime targets that respect timeoutMs.
 const DISCOVERY_TIMEOUT_MS = 10_000
 // Renderer wall-clock backstop for the local branch (which ignores timeoutMs).
-// It must exceed the host's summed worst case — a WSL scan runs a metadata read
-// (5s) then the tree walk (10s) in sequence — so the host's own precise timeout
+// It must exceed the host's summed worst case â€” a WSL scan runs a metadata read
+// (5s) then the tree walk (10s) in sequence â€” so the host's own precise timeout
 // wins and a WSL cold boot does not surface a healthy scan as a spurious timeout.
 const DISCOVERY_BACKSTOP_TIMEOUT_MS = 18_000
 
@@ -63,31 +62,6 @@ const MISSING_CONTEXT_STATE: StoredDiscoveryState = {
 }
 const inFlightDiscovery = new Map<string, Promise<SkillDiscoveryResult>>()
 
-export function isNativeChatSkillForAgent(
-  agent: AgentType,
-  skill: DiscoveredSkill,
-  result?: Pick<SkillDiscoveryResult, 'sources'>
-): boolean {
-  const profile = getNativeChatAgentProfile(agent)
-  if (!profile) {
-    return false
-  }
-  if (!result) {
-    return (
-      agent === 'codex' &&
-      (skill.providers.includes('codex') || skill.providers.includes('agent-skills'))
-    )
-  }
-  // Why: canonical-path dedup keeps one row per file, but a symlinked skill can
-  // be reachable through several roots; any shared or agent-owned root grants
-  // visibility regardless of which root the scanner happened to list first.
-  const rootPaths = skill.rootPaths?.length ? skill.rootPaths : [skill.rootPath]
-  return rootPaths.some((rootPath) => {
-    const source = result.sources.find((entry) => entry.path === rootPath)
-    return source !== undefined && readsSkillSource(profile, source)
-  })
-}
-
 export function useNativeChatSkills(
   agent: AgentType,
   terminalTabId: string,
@@ -105,7 +79,7 @@ export function useNativeChatSkills(
   const [state, setState] = useState<StoredDiscoveryState>(IDLE_STATE)
   const [retryGeneration, setRetryGeneration] = useState(0)
   const paneDiscoveryCache = useRef(new Map<string, SkillDiscoveryResult>())
-  // Why: retry intent belongs to the next request, not to every later render —
+  // Why: retry intent belongs to the next request, not to every later render â€”
   // keying off the generation counter would keep forcing after a pane switch.
   const forceNextDiscovery = useRef(false)
   const profile = getNativeChatAgentProfile(agent)

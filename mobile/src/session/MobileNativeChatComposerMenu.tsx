@@ -11,13 +11,20 @@ export function composerMenuInsertText(row: ComposerMenuRow): string {
   return row.kind === 'file' ? `@${row.path}` : row.token
 }
 
-const HEADINGS = { command: 'Commands', skill: 'Skills', file: 'Files' } as const
+const HEADINGS = {
+  command: 'Commands',
+  skill: 'Skills',
+  'skill-mode': 'Skills',
+  file: 'Files'
+} as const
 
 /** The floating card above the composer, grouped and labelled as desktop's `/` menu is. */
 export function MobileNativeChatComposerMenu({
   rows,
+  selectedIndex = 0,
   onPick
 }: {
+  selectedIndex?: number
   rows: readonly ComposerMenuRow[]
   onPick: (row: ComposerMenuRow) => void
 }): React.JSX.Element {
@@ -29,7 +36,7 @@ export function MobileNativeChatComposerMenu({
             {rows[index - 1]?.kind !== row.kind ? (
               <Text style={styles.heading}>{HEADINGS[row.kind]}</Text>
             ) : null}
-            <MenuRow row={row} onPick={onPick} />
+            <MenuRow row={row} selected={index === selectedIndex} onPick={onPick} />
           </View>
         ))}
       </ScrollView>
@@ -39,8 +46,10 @@ export function MobileNativeChatComposerMenu({
 
 function MenuRow({
   row,
+  selected,
   onPick
 }: {
+  selected: boolean
   row: ComposerMenuRow
   onPick: (row: ComposerMenuRow) => void
 }): React.JSX.Element {
@@ -50,7 +59,8 @@ function MenuRow({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={composerMenuInsertText(row)}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      accessibilityState={{ selected }}
+      style={({ pressed }) => [styles.row, (pressed || selected) && styles.rowPressed]}
       onPress={() => onPick(row)}
     >
       <Icon size={16} color={colors.textSecondary} strokeWidth={2} style={styles.icon} />

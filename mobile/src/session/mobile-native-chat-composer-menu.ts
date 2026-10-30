@@ -1,3 +1,4 @@
+import type { DiscoveredSkill } from '../../../src/shared/skills'
 import type { AgentSessionConversationCommand } from '../../../src/shared/agent-session-conversation-command'
 import type { AgentSessionSlashCommand } from '../../../src/shared/agent-session-wire'
 import { getNativeChatAgentProfile } from '../../../src/shared/native-chat-agent-profiles'
@@ -23,6 +24,8 @@ type SlashMenuInput = {
   agent: string | null
   structured: MobileComposerStructuredCatalog | undefined
   query: string
+  skills?: readonly DiscoveredSkill[]
+  trigger?: '/' | '$'
 }
 
 /**
@@ -31,7 +34,7 @@ type SlashMenuInput = {
  * curated commands and no skills.
  */
 function slashItems(
-  { agent, structured, query }: SlashMenuInput,
+  { agent, structured, query, skills = [], trigger = '/' }: SlashMenuInput,
   limit: number
 ): NativeChatPickerItem[] {
   if (!agent) {
@@ -41,14 +44,21 @@ function slashItems(
   const commands = structured
     ? structuredSessionSlashCommands(agent, structured.conversationCommands, reported)
     : getMobileNativeChatCommands(agent)
-  return buildNativeChatPickerItems(
+  if (trigger === '$' && getNativeChatAgentProfile(agent)?.skillPrefix !== '$') {
+    return []
+  }
+  const items = buildNativeChatPickerItems(
     commands,
-    [],
+    skills,
     query,
     getNativeChatAgentProfile(agent)?.skillPrefix ?? '/',
-    reported ? sessionReportedSkills(reported) : [],
-    limit
+    reported && !getNativeChatAgentProfile(agent)?.keepsScannedSkills
+      ? sessionReportedSkills(reported)
+      : undefined,
+    limit,
+    trigger
   )
+  return trigger === '$' ? items.filter((item) => item.kind === 'skill') : items
 }
 
 /** The rows the menu draws for a query: each group capped, since typing narrows the rest. */

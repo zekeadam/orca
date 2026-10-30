@@ -2,7 +2,7 @@
 // `/slash` commands. Detection is pure (text + cursor → active trigger) so it's
 // unit-testable and the composer stays a thin view over it.
 
-export type AutocompleteKind = 'file' | 'slash'
+export type AutocompleteKind = 'file' | 'slash' | 'skill'
 
 export type AutocompleteTrigger = {
   kind: AutocompleteKind
@@ -36,11 +36,11 @@ export function detectAutocompleteTrigger(
     return null
   }
   const triggerChar = text[triggerIndex]
-  if (triggerChar !== '@' && triggerChar !== '/') {
+  if (triggerChar !== '@' && triggerChar !== '/' && triggerChar !== '$') {
     return null
   }
   const before = triggerIndex === 0 ? '' : text[triggerIndex - 1]!
-  if (triggerChar === '/' && triggerIndex !== 0) {
+  if ((triggerChar === '/' || triggerChar === '$') && triggerIndex !== 0) {
     // Slash commands are only offered at the very start of the message.
     return null
   }
@@ -53,7 +53,7 @@ export function detectAutocompleteTrigger(
     return null
   }
   return {
-    kind: triggerChar === '@' ? 'file' : 'slash',
+    kind: triggerChar === '@' ? 'file' : triggerChar === '$' ? 'skill' : 'slash',
     query,
     start: triggerIndex,
     end: pos
