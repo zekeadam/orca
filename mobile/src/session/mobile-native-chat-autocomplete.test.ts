@@ -6,6 +6,13 @@ import {
 } from './mobile-native-chat-autocomplete'
 
 describe('detectAutocompleteTrigger', () => {
+  it('opens dollar skills only at the beginning and preserves suffix text on insertion', () => {
+    const trigger = detectAutocompleteTrigger('$ask focus', 4)
+    expect(trigger).toEqual({ kind: 'skill', query: 'ask', start: 0, end: 4 })
+    expect(applyAutocomplete('$ask focus', trigger!, '$ask').text).toBe('$ask  focus')
+    expect(detectAutocompleteTrigger('echo $ask', 9)).toBeNull()
+    expect(detectAutocompleteTrigger('$ask ', 5)).toBeNull()
+  })
   it('opens nothing while the caret sits before the trigger character', () => {
     expect(detectAutocompleteTrigger('/review-pr focus', 0)).toBeNull()
     expect(detectAutocompleteTrigger('see @src', 4)).toBeNull()

@@ -1,3 +1,4 @@
+import type { MobileChatSkillDiscovery } from './use-mobile-native-chat-skills'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Keyboard, Pressable, type TextInput, View } from 'react-native'
 import { ArrowUp, Mic, Plus, Square } from 'lucide-react-native'
@@ -38,6 +39,8 @@ export type MobileNativeChatStructuredComposer = {
 }
 
 type Props = {
+  skillDiscovery?: MobileChatSkillDiscovery
+
   /** Lets the owner focus the field, e.g. after Edit moves a queued message into it. */
   inputRef?: React.RefObject<TextInput | null>
   /** Absent on a terminal-backed chat, whose + only adds photos and whose menu keeps its curated
@@ -81,6 +84,7 @@ type Props = {
 
 export function MobileNativeChatComposer({
   inputRef,
+  skillDiscovery,
   value,
   onChangeText,
   onSend,
@@ -124,6 +128,8 @@ export function MobileNativeChatComposer({
     agent,
     structuredCatalog: structured?.catalog,
     filePaths,
+    skills: skillDiscovery?.skills,
+    onSkillMenuOpen: skillDiscovery?.refresh,
     onNeedFiles,
     onSlashMenuOpen: structured?.onSlashMenuOpen,
     focusField: () => fieldRef.current?.focus()
@@ -206,7 +212,11 @@ export function MobileNativeChatComposer({
   return (
     <View>
       {menu.rows.length > 0 ? (
-        <MobileNativeChatComposerMenu rows={menu.rows} onPick={menu.pick} />
+        <MobileNativeChatComposerMenu
+          rows={menu.rows}
+          onPick={menu.pick}
+          selectedIndex={menu.selectedIndex}
+        />
       ) : null}
       <View style={styles.composerInset} testID="native-chat-composer-inset">
         <View style={styles.bar} testID="native-chat-composer">
@@ -221,6 +231,7 @@ export function MobileNativeChatComposer({
             value={value}
             skillToken={menu.skillToken}
             onChangeText={menu.onFieldChange}
+            onKeyPress={menu.onKeyPress}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             // Controlled only transiently right after an autocomplete insert.

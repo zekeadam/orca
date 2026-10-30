@@ -122,6 +122,62 @@ describe('MobileNativeChatComposer on a structured chat', () => {
     expect(onChangeText).toHaveBeenLastCalledWith('focus')
   })
 
+  it.each(['ask', 'smart-execution'])(
+    'finds and inserts $%s in a terminal-backed composer by touch and keyboard',
+    async (name) => {
+      const onChangeText = vi.fn()
+      const refresh = vi.fn()
+      const skillDiscovery = {
+        refresh,
+        skills: [
+          {
+            id: name,
+            name,
+            description: 'Personal skill',
+            providers: ['agent-skills' as const],
+            sourceKind: 'home' as const,
+            sourceLabel: 'Personal',
+            rootPath: '/skills',
+            directoryPath: `/skills/${name}`,
+            skillFilePath: `/skills/${name}/SKILL.md`,
+            installed: true,
+            updatedAt: null
+          }
+        ]
+      }
+      const value = `$${name.slice(0, 2)}`
+      await act(async () => {
+        renderer = create(draw({ value, agent: 'codex', onChangeText, skillDiscovery }))
+      })
+      await act(async () =>
+        field().props.onSelectionChange({ nativeEvent: { selection: { end: value.length } } })
+      )
+      expect(refresh).toHaveBeenCalled()
+      await act(async () => field().props.onKeyPress({ nativeEvent: { key: 'ArrowDown' } }))
+      await act(async () => field().props.onKeyPress({ nativeEvent: { key: 'ArrowUp' } }))
+      expect(labelled(`$${name}`)).toHaveLength(1)
+      const preventDefault = vi.fn()
+      await act(async () =>
+        field().props.onKeyPress({ nativeEvent: { key: 'Escape' }, preventDefault })
+      )
+      expect(labelled(`$${name}`)).toHaveLength(0)
+      // Editing reopens the menu after Escape.
+      await act(async () =>
+        renderer!.update(draw({ value: `$${name}`, agent: 'codex', onChangeText, skillDiscovery }))
+      )
+      await act(async () =>
+        field().props.onSelectionChange({ nativeEvent: { selection: { end: name.length + 1 } } })
+      )
+      await act(async () =>
+        field().props.onKeyPress({ nativeEvent: { key: 'Enter' }, preventDefault })
+      )
+      expect(preventDefault).toHaveBeenCalled()
+      expect(onChangeText).toHaveBeenLastCalledWith(`$${name} `)
+      await act(async () => labelled(`$${name}`)[0]!.props.onPress())
+      expect(onChangeText).toHaveBeenLastCalledWith(`$${name} `)
+    }
+  )
+
   it('opens the + sheet on a structured chat, and the photo library at once otherwise', async () => {
     const onAttachImage = vi.fn()
     await act(async () => {
