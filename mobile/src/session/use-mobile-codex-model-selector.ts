@@ -1,3 +1,7 @@
+import {
+  reconcileMobileCodexModelSelection,
+  type ConfirmedMobileCodexModelSelection
+} from './mobile-codex-model-selection'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import type { AgentSessionModelCatalogResult } from '../../../src/shared/agent-session-wire'
 import type {
@@ -46,16 +50,18 @@ export function useMobileCodexModelSelector(args: {
     catalog: Catalog | null
     error: string | null
   } | null>(null)
-  const [selection, setSelection] = useState<{
-    scope: string | null
-    model: string
-    effort: string
-  } | null>(null)
+  const [selection, setSelection] = useState<ConfirmedMobileCodexModelSelection | null>(null)
   const [pending, setPending] = useState<{ scope: string | null; id: string } | null>(null)
   const [failure, setFailure] = useState<{ scope: string | null; message: string } | null>(null)
   const identity = useRef(scope)
   identity.current = scope
   const inFlight = useRef(false)
+  const latestReportedModel = useRef(reportedModel)
+  latestReportedModel.current = reportedModel
+  const reconciled = reconcileMobileCodexModelSelection(selection, scope, reportedModel)
+  if (reconciled !== selection) {
+    setSelection(reconciled)
+  }
   useEffect(() => {
     if (!enabled || !client) {
       return
@@ -97,7 +103,7 @@ export function useMobileCodexModelSelector(args: {
     }
   }, [enabled, client, scope, worktreeId])
   const catalog = listing?.scope === scope ? listing.catalog : null
-  const chosen = selection?.scope === scope ? selection : null
+  const chosen = reconciled?.scope === scope ? reconciled : null
   const modelId = chosen?.model ?? reportedModel
   const model = catalog?.models.find((entry) => entry.id === modelId)
   const error =
@@ -245,7 +251,7 @@ export function useMobileCodexModelSelector(args: {
         'terminal.read',
         { terminal, limit: 1 }
       )
-      const cursor = Number(before.terminal.nextCursor)
+      let cursor = Number(before.terminal.nextCursor)
       if (!current() || before.terminal.nextCursor === null || !Number.isSafeInteger(cursor)) {
         throw new Error('Could not verify this session. No model change was sent.')
       }
@@ -260,12 +266,31 @@ export function useMobileCodexModelSelector(args: {
           { terminal, cursor, limit: 100 },
           3000
         )
+        if (!current()) {
+          return false
+        }
         const confirmed = readMobileCodexModelConfirmation(read.terminal.tail.join('\n'))
         if (confirmed?.model === target.id && (!effort || confirmed.effort === effort)) {
           if (current()) {
-            setSelection({ scope, ...confirmed })
+            setSelection({
+              scope,
+              ...confirmed,
+              reportedModelAtSelection: reportedModel,
+              reportAcknowledged: latestReportedModel.current === confirmed.model
+            })
           }
           return true
+        }
+        const nextCursor = Number(read.terminal.nextCursor)
+        if (
+          read.terminal.nextCursor !== null &&
+          Number.isSafeInteger(nextCursor) &&
+          nextCursor > cursor
+        ) {
+          cursor = nextCursor
+          if (read.terminal.limited) {
+            continue
+          }
         }
         await new Promise((resolve) => setTimeout(resolve, 200))
       }

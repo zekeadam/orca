@@ -42,6 +42,8 @@ describe('terminal Codex graphical model selector', () => {
       status?: string
       outcome?: 'accepted' | 'rejected' | 'unknown'
       confirm?: boolean
+      confirmationAfterPage?: boolean
+      reportedModel?: string
     } = {}
   ) {
     const dispatch = vi.fn().mockResolvedValue(options.outcome ?? 'accepted')
@@ -55,6 +57,27 @@ describe('terminal Codex graphical model selector', () => {
       }
       if (method === 'terminal.read') {
         const screen = typeof params === 'object' && params !== null && 'screen' in params
+        const cursor =
+          typeof params === 'object' && params !== null && 'cursor' in params ? params.cursor : null
+        if (options.confirmationAfterPage && dispatch.mock.calls.length && cursor === 10) {
+          return {
+            terminal: {
+              source: 'stream',
+              nextCursor: '110',
+              limited: true,
+              tail: Array(100).fill('other output')
+            }
+          }
+        }
+        if (options.confirmationAfterPage && dispatch.mock.calls.length && cursor === 110) {
+          return {
+            terminal: {
+              source: 'stream',
+              nextCursor: '111',
+              tail: ['Model changed to gpt-6-astra high for this session only']
+            }
+          }
+        }
         return {
           terminal: {
             source: screen ? 'screen' : 'stream',
@@ -88,6 +111,7 @@ describe('terminal Codex graphical model selector', () => {
     const seen: { current: ReturnType<typeof useMobileCodexModelSelector> | null } = {
       current: null
     }
+    let reportedModel = options.reportedModel ?? 'gpt-6-astra'
     function Probe() {
       seen.current = useMobileCodexModelSelector({
         enabled: true,
@@ -95,7 +119,7 @@ describe('terminal Codex graphical model selector', () => {
         scope: 'host/workspace/tab',
         worktreeId: 'workspace',
         handleRef,
-        reportedModel: 'gpt-6-astra',
+        reportedModel,
         dispatchCommand: dispatch
       })
       return null
@@ -103,7 +127,16 @@ describe('terminal Codex graphical model selector', () => {
     await act(async () => {
       renderer = create(createElement(Probe))
     })
-    return { seen, dispatch, calls, handleRef }
+    return {
+      seen,
+      dispatch,
+      calls,
+      handleRef,
+      reportModel: async (model: string) => {
+        reportedModel = model
+        await act(async () => renderer!.update(createElement(Probe)))
+      }
+    }
   }
 
   it('builds only validated session-only commands and reads exact confirmation', () => {
@@ -219,5 +252,36 @@ describe('terminal Codex graphical model selector', () => {
       expect(await seen.current!.setOption('effort', 'high')).toBe(true)
     })
     expect(seen.current!.snapshot[1]?.kind.currentValue).toBe('high')
+  })
+  it('reads the next stream page when confirmation follows a full output page', async () => {
+    const { seen, calls } = await mount({ confirmationAfterPage: true })
+    await act(async () => {
+      expect(await seen.current!.setOption('effort', 'high')).toBe(true)
+    })
+    expect(calls).toHaveBeenCalledWith('terminal.read', {
+      terminal: 'term-target',
+      cursor: 110,
+      limit: 100
+    })
+  })
+  it('keeps a confirmed choice over stale reports, then follows later host model changes', async () => {
+    const { seen, reportModel } = await mount({ reportedModel: 'gpt-6.1-sol' })
+    await act(async () => {
+      expect(await seen.current!.setOption('model', 'gpt-6-astra')).toBe(true)
+    })
+    expect(seen.current!.snapshot[0]?.kind.currentValue).toBe('gpt-6-astra')
+    await reportModel('gpt-6.1-sol')
+    expect(seen.current!.snapshot[0]?.kind.currentValue).toBe('gpt-6-astra')
+    await reportModel('gpt-6-astra')
+    await reportModel('gpt-6.1-sol')
+    expect(seen.current!.snapshot[0]?.kind.currentValue).toBe('gpt-6.1-sol')
+  })
+  it('follows a distinct external model change even before the host echoes the chosen model', async () => {
+    const { seen, reportModel } = await mount({ reportedModel: 'gpt-6.1-sol' })
+    await act(async () => {
+      expect(await seen.current!.setOption('model', 'gpt-6-astra')).toBe(true)
+    })
+    await reportModel('gpt-external')
+    expect(seen.current!.snapshot[0]?.kind.currentValue).toBe('gpt-external')
   })
 })
