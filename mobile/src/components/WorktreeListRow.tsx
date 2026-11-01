@@ -63,6 +63,7 @@ function WorktreeListRowComponent({
   const isFolderWorkspace = item.workspaceKind === 'folder-workspace'
   const folderMeta = item.comment?.trim() || item.path || 'Folder'
   const metaText = isFolderWorkspace ? folderMeta : displayBranch(item.branch)
+  const showBranch = isFolderWorkspace || metaText !== (item.displayName || item.repo)
   const lineageDepth = Math.max(0, item.lineageDepth ?? 0)
   const lineageChildCount = item.lineageChildCount ?? 0
   const shouldHideRepo = hideRepo && !item.showProjectName
@@ -117,6 +118,9 @@ function WorktreeListRowComponent({
           {showRepoChip && (
             <View style={styles.repoChip} accessibilityLabel={`Project ${item.repo}`}>
               <MobileRepoIcon repoIcon={repoIcon} size={11} color={repoColor} />
+              <Text style={styles.repoChipName} numberOfLines={1}>
+                {item.repo}
+              </Text>
             </View>
           )}
           <Text
@@ -129,6 +133,11 @@ function WorktreeListRowComponent({
           >
             {item.displayName || item.repo}
           </Text>
+          {item.isMainWorktree && (
+            <View style={styles.folderBadge}>
+              <Text style={styles.primaryBadgeText}>Primary</Text>
+            </View>
+          )}
           {cardDetails.pr && item.linkedPR && (
             <View style={styles.prBadge}>
               <GitPullRequest size={10} color={prStateColor(item.linkedPR.state)} />
@@ -179,9 +188,11 @@ function WorktreeListRowComponent({
                 </Text>
               </>
             )}
-            <Text style={styles.branchName} numberOfLines={1}>
-              {metaText}
-            </Text>
+            {showBranch && (
+              <Text style={styles.branchName} numberOfLines={1}>
+                {metaText}
+              </Text>
+            )}
           </View>
         )}
         {/* Only agents get a secondary activity line, matching desktop. A plain
@@ -261,6 +272,7 @@ const styles = StyleSheet.create({
   },
   worktreeMain: {
     flex: 1,
+    minWidth: 0,
     marginRight: spacing.sm
   },
   worktreeNameRow: {
@@ -293,16 +305,28 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.textSecondary
   },
-  // Why: matches the desktop's compact repo chip, a small framed icon ahead of the title.
+  // Mobile needs the project name: different repositories often share the same main branch.
   repoChip: {
-    width: 16,
-    height: 16,
+    flexDirection: 'row',
+    maxWidth: '45%',
+    flexShrink: 1,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     borderRadius: 4,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.borderSubtle,
     backgroundColor: colors.bgRaised
+  },
+  repoChipName: {
+    fontSize: typography.metaSize,
+    color: colors.textSecondary,
+    flexShrink: 1
+  },
+  primaryBadgeText: {
+    fontSize: typography.metaSize,
+    color: colors.textSecondary
   },
   folderBadge: {
     backgroundColor: colors.bgRaised,

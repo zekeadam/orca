@@ -42,6 +42,7 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     showToast,
     clearTerminalCache,
     fetchTerminals,
+    fetchSessionTabs,
     ensureSessionTabs
   } = scope
   useEffect(() => {
@@ -128,9 +129,10 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
           showToast('Open Orca on the host to wake sleeping agents.', 3000)
         }
       }
-      if (client && created !== '1' && !isFloatingWorkspaceRoute) {
-        // Why: hydrate host-owned tabs without pulling other paired clients (esp. desktop) into this worktree.
-        void worktreeActivate
+      const activateExistingWorkspace = client && created !== '1' && !isFloatingWorkspaceRoute
+      if (activateExistingWorkspace) {
+        // Wait for hydration before reconciling: an earlier empty list can certify a still-waking workspace.
+        await worktreeActivate
           .request(client, {
             worktree: `id:${worktreeId}`,
             notifyClients: false,
@@ -142,7 +144,8 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
       if (disposed) {
         return
       }
-      await ensureSessionTabs().catch(() => null)
+      // A pending pre-activation list cannot satisfy the hydrated workspace's new requirement.
+      await (activateExistingWorkspace ? fetchSessionTabs() : ensureSessionTabs()).catch(() => null)
       if (disposed) {
         return
       }
@@ -186,6 +189,7 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     connState,
     created,
     fetchTerminals,
+    fetchSessionTabs,
     ensureSessionTabs,
     isFloatingWorkspaceRoute,
     showToast,

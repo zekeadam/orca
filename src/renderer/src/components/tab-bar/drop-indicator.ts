@@ -14,8 +14,8 @@ export function getDropIndicatorClasses(dropIndicator: DropIndicator): string {
   return ''
 }
 
-// Selection is carried by the active tab surface; retain this export for tab consumers.
-export const ACTIVE_TAB_INDICATOR_CLASSES = 'hidden'
+export const ACTIVE_TAB_INDICATOR_CLASSES =
+  'pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-status-success'
 
 export function getTabRootStateClasses(isActive: boolean): string {
   return isActive

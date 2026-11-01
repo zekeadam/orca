@@ -164,7 +164,7 @@ Variants in priority order:
 
 Sizes: `default` (40px), `sm` (32px), `xs` (24px compact icon/chip compatibility), `lg` (40px), plus `icon`, `icon-xs`, `icon-sm`, `icon-lg`. Match the size to the surrounding row height — don't drop a `default` button into a 28px toolbar.
 
-Workspace primary badges use the quiet `workspacePrimary` badge variant. Workspace title rows and section labels use a 32px band; rows with user-enabled metadata or agent details grow to retain that content. Window title, attached tab strips and right-panel chrome share a 40px band. Active tabs and workspace rows use filled selection; focus rings remain reserved for keyboard focus.
+Workspace primary badges use the quiet `workspacePrimary` badge variant. Workspace title rows and section labels use a 32px band; rows with user-enabled metadata or agent details grow to retain that content. Window title, attached tab strips and right-panel chrome share a 40px band. Active tabs use filled selection with a thin green bottom indicator (`status-success`); workspace rows use filled selection. Focus rings remain reserved for keyboard focus.
 
 ### Other primitives in this repo
 

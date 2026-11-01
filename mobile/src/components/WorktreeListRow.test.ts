@@ -441,7 +441,7 @@ describe('memoized worktree rows', () => {
       expect(repoChips()).toHaveLength(0)
 
       await render({ cardDetails: COMPACT })
-      expect(texts()).not.toContain('orca')
+      expect(texts()).toContain('orca')
       expect(texts()).not.toContain('feature/mobile-list')
       expect(texts()).toContain('mobile-list')
       expect(repoChips()).toHaveLength(1)
@@ -521,10 +521,27 @@ describe('memoized worktree rows', () => {
     it('uses the chip under the new card style but keeps the branch line', async () => {
       await render({ cardDetails: NEW_CARD_STYLE })
       expect(repoChips()).toHaveLength(1)
-      expect(texts()).not.toContain('orca')
+      expect(texts()).toContain('orca')
       expect(texts()).toContain('feature/mobile-list')
     })
   })
+
+  it.each([ALL_DETAILS, COMPACT, NEW_CARD_STYLE])(
+    'identifies primary worktrees even when branch names repeat',
+    async (cardDetails) => {
+      await act(async () => {
+        renderer = create(
+          createElement(ListRowHarness, {
+            item: { ...baseItem, displayName: 'main', branch: 'main', isMainWorktree: true },
+            now: 2_000,
+            cardDetails
+          })
+        )
+      })
+      const texts = renderer!.root.findAllByType(Text).map((node) => node.props.children)
+      expect(texts).toEqual(expect.arrayContaining(['orca', 'main', 'Primary']))
+    }
+  )
 
   it('passes the Jira, automation and CLI facts the card properties show', async () => {
     const item: TestItem = {

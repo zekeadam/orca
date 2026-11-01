@@ -242,12 +242,12 @@ export class RuntimeRpcWebSocketDispatch extends RuntimeRpcMobileDevices {
         clientKind: device.scope,
         callerScope,
         clientCapabilities: authenticatedSocket?.clientCapabilities,
-        updateClientCapabilities:
-          authenticatedSocket && device.scope === 'mobile'
-            ? (clientCapabilities) => {
-                authenticatedSocket.clientCapabilities = clientCapabilities
-              }
-            : undefined,
+        // Legacy phones may have runtime pairings; rendering capabilities never change their grants.
+        updateClientCapabilities: authenticatedSocket
+          ? (clientCapabilities) => {
+              authenticatedSocket.clientCapabilities = clientCapabilities
+            }
+          : undefined,
         pairing: pairingContext,
         deviceSelf:
           authenticatedSocket && this.deviceRegistry

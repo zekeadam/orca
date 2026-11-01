@@ -238,7 +238,7 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
               colors={[colors.textSecondary]}
             />
           }
-          renderItem={({ item }) => (
+          renderItem={({ item, section }) => (
             <WorktreeListRow
               item={item}
               isReadOnly={isReadOnly}
@@ -246,7 +246,11 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
               status={getWorktreeStatus(item)}
               repoColor={repoLookById.get(item.repoId)?.color ?? repoColor(item.repo)}
               repoIcon={repoLookById.get(item.repoId)?.icon ?? null}
-              hideRepo={state.view.groupBy === 'repo' && !item.showProjectName}
+              hideRepo={
+                state.view.groupBy === 'repo' &&
+                section.repo?.id === item.repoId &&
+                !item.showProjectName
+              }
               cardDetails={cardDetails}
               agentActivityDisplayMode={state.view.agentActivityDisplayMode}
               onPress={actions.openWorktreeSession}
