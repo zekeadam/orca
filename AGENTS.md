@@ -81,6 +81,18 @@ Pending, failed, cancelled, or missing required checks block agent merges even w
 
 CI changes must exercise the affected checks in the PR. Required check names must be unique across workflows, and workflow changes must preserve the full aggregate's failure handling and conditional job requirements.
 
+## Git Delivery for Assigned Tasks (full-auto)
+
+- Repository: `github.com/zekeadam/orca`. Base: `dev`. Publish remote: `origin` (verify its URL is the fork). `upstream` (`stablyai/orca`) is fetch-only unless the user explicitly requests an upstream action.
+- Before substantive edits on a new task, resume or handoff, inspect HEAD/branch, local changes, `origin/dev` and active worktree owners; check whether the prior task's PR merged. Before publishing or merging, query the current remote `dev` and task-head OIDs (`git ls-remote`); cached refs alone are insufficient. Fetch only explicitly needed refs. Treat inaccessible remote state as unverified. No constant polling.
+- Reuse the owned task branch or create one scoped branch (`zekeadam/<recognizable-purpose>`) from fresh `origin/dev`; after a task merges, start new work on a new branch. Preserve unrelated changes. Reconcile dirty, diverged, remotely advanced or other-owned state before moving refs; fast-forward only clean, owned branches. When `dev` moves, inspect the relevant delta, integrate if needed and rerun affected checks. One integration owner controls shared branch/ref/index mutations; recheck HEAD and the full staged scope before committing.
+- Without repeated confirmation: scoped fetch, safe sync of owned branches, coherent checked commits, push of the task branch, and one created/updated PR targeting `dev`. No automatic rebase of published branches or force push.
+- Required checks: relevant local `pnpm tc`, `pnpm test` and `pnpm run check:code-quality:changed`, plus the `.github/workflows/pr.yml` aggregate `PR checks passed` (job `verify`) on the exact current head (see Merging Pull Requests). Required review: one fresh independent agent review of the current head (e.g. `/code-review`) with no unresolved blocking findings. No additional human merge approval, unless the task or user sets a human/product gate.
+- Merge: automatically after the gates pass, squash merge with `--match-head-commit`. Immediately before merge recheck head, base, checks and review; any head change invalidates prior evidence.
+- Cleanup: after verified merge, delete the merged task branch locally and on `origin` (expected-OID lease) when no worktree, active agent or dependent PR uses it. Remove Orca workspace worktrees only after preserving their untracked/ignored content (e.g. `.local/`) and confirming no live owner. Close assigned issues only with evidence of their actual acceptance outcome; otherwise use non-closing references.
+- Give every new or edited branch, commit subject and PR/issue title a recognizable subject and purpose. Report commit, PR, actual checks and verified hosted state; keep failed steps marked incomplete.
+- Excluded unless separately authorized: deployment, releases/tags, force push/history rewrite, repository settings or protection changes, unique-work abandonment, taking over another active owner, and any write to upstream.
+
 # Considerations
 
 ## Worktree Safety
